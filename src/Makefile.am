@@ -9,7 +9,10 @@ DISTCLEANFILES                     =
 bin_PROGRAMS                       =
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT =
 
-rina_tgen_SOURCES  =				\
+irina_traffic_generator_SOURCES  =				\
+	application.cc         application.h		\
+	server.cc              server.h			\
+	client.cc              client.h			\
 	main.cc
 rina_tgen_LDADD    = $(LIBRINA_LIBS) -lrt
 rina_tgen_CPPFLAGS =				\
