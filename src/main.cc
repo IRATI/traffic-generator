@@ -1,8 +1,8 @@
 //
 // Traffic generator main
 //
-// Addy Bombeke <addy.bombeke@ugent.be>
-// Vincenzo Maffione <v.maffione@nextworks.it>
+// Douwe De Bock <douwe.debock@ugent.be>
+// 
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
