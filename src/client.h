@@ -58,7 +58,7 @@ class Client: public Application {
         protected:
                 rina::Flow * createFlow();
                 void generateTraffic(rina::Flow * flow);
-                void waitForDeallocate();
+                void destroyFlow(rina::Flow * flow);
 
         private:
                 std::string difName;

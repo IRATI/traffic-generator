@@ -81,7 +81,7 @@ void Server::run()
         }
 }
 
-static unsigned long msElapsed(const struct timespec &start,
+static unsigned int msElapsed(const struct timespec &start,
                 const struct timespec &end);
 
 void Server::startReceive(Flow * flow)
@@ -123,11 +123,11 @@ void Server::startReceive(Flow * flow)
            itimer.it_value.tv_nsec = timeout % 1000000000;
            */
         bool timeTest;
+        timer_t timerId;
         if (duration) {
                 timeTest = true;
                 struct sigevent event;
                 struct itimerspec durationTimer;
-                timer_t timerId;
 
                 event.sigev_notify = SIGEV_THREAD;
                 event.sigev_value.sival_ptr = &running;
@@ -146,24 +146,35 @@ void Server::startReceive(Flow * flow)
 
         unsigned long long totalSdus = 1;
         unsigned long long totalBytes = 0;
-        clock_gettime(CLOCK_REALTIME, &start);
-        while (running) {
-                totalBytes += flow->readSDU(data, sduSize);
-                totalSdus++;
+        try {
+                clock_gettime(CLOCK_REALTIME, &start);
+                while (running) {
+                        totalBytes += flow->readSDU(data, sduSize);
+                        totalSdus++;
 
-                if (!timeTest) {
-                        if (totalSdus >= count)
-                                running = 0;
+                        if (!timeTest) {
+                                if (totalSdus >= count)
+                                        running = 0;
+                        }
                 }
-        }
-        clock_gettime(CLOCK_REALTIME, &end);
-        unsigned long ms = msElapsed(start, end);
+                clock_gettime(CLOCK_REALTIME, &end);
+                unsigned int ms = msElapsed(start, end);
 
-        LOG_INFO("Received %llu SDUs and %llu bytes in %lu ms", totalSdus, totalBytes, ms);
-        LOG_INFO("\t%.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
+                char statistics[sizeof(totalSdus) + sizeof(totalBytes) + sizeof(ms)];
+                memcpy(statistics, &totalSdus, sizeof(totalSdus));
+                memcpy(&statistics[sizeof(totalSdus)], &totalBytes, sizeof(totalBytes));
+                memcpy(&statistics[sizeof(totalSdus) + sizeof(totalBytes)], &ms, sizeof(ms));
+                
+                flow->writeSDU(statistics, sizeof(statistics));
+
+                LOG_INFO("Received %llu SDUs and %llu bytes in %lu ms", totalSdus, totalBytes, ms);
+                LOG_INFO("\t%.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
+        } catch (IPCException& ex) {
+                timer_delete(timerId);
+        }
 }
 
-static unsigned long msElapsed(const struct timespec &start,
+static unsigned int msElapsed(const struct timespec &start,
                 const struct timespec &end)
 {
         return ((end.tv_sec - start.tv_sec) * 1000000000

@@ -40,18 +40,14 @@ void Client::run()
 {
         Flow * flow;
 
-        if (registerClient) {
+        if (registerClient)
                 applicationRegister();
-                LOG_DBG("registration finished");
-        }
+
         flow = createFlow();
-        LOG_DBG("flow created");
 
         if (flow) {
                 generateTraffic(flow);
-                LOG_INFO("traffic generated");
-                waitForDeallocate();
-                LOG_INFO("done");
+                destroyFlow(flow);
         }
 }
 
@@ -120,7 +116,7 @@ void Client::generateTraffic(Flow * flow)
 
         LOG_INFO("Server response: %s", response);
 
-        unsigned int long long seq = 0;
+        unsigned long long seq = 0;
         struct timespec start;
         clock_gettime(CLOCK_REALTIME, &start);
         bool running = 1;
@@ -149,6 +145,16 @@ void Client::generateTraffic(Flow * flow)
         }
         LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes",
                         seq, seq * sduSize);
+
+        flow->readSDU(response, 50);
+        unsigned long long totalBytes;
+        unsigned int ms;
+        memcpy(&seq, response, sizeof(seq));
+        memcpy(&totalBytes, &response[sizeof(seq)], sizeof(totalBytes));
+        memcpy(&ms, &response[sizeof(seq) + sizeof(totalBytes)], sizeof(ms));
+
+        LOG_INFO("Result: %llu SDUs and %llu bytes in %lu ms", seq, totalBytes, ms);
+        LOG_INFO("\tthat's %.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
 }
 
 void Client::busyWait(struct timespec &start, double deadline)
@@ -171,30 +177,25 @@ unsigned int Client::secondsElapsed(struct timespec &start)
         return now.tv_sec - start.tv_sec - cor;
 }
 
-void Client::waitForDeallocate()
+void Client::destroyFlow(Flow * flow)
 {
-        int deallocated = 0;
+        DeallocateFlowResponseEvent * resp = nullptr;
+        unsigned int seqNum;
+        IPCEvent * event;
+        int port_id = flow->getPortId();
 
-        while (!deallocated) {
-                IPCEvent* event = ipcEventProducer->eventWait();
-                unsigned int port_id;
+        seqNum = ipcManager->requestFlowDeallocation(port_id);
 
-                if (!event)
-                        return;
-
-                switch (event->eventType) {
-
-                        case FLOW_DEALLOCATED_EVENT:
-                                port_id = dynamic_cast<FlowDeallocatedEvent*>(event)->portId;
-                                ipcManager->flowDeallocated(port_id);
-                                LOG_INFO("Flow torn down remotely [port-id = %d]", port_id);
-                                deallocated = 1;
-                                break;
-
-                        default:
-                                LOG_INFO("Server got new event of type %d",
-                                                event->eventType);
-                                break;
+        for (;;) {
+                event = ipcEventProducer->eventWait();
+                if (event && event->eventType == DEALLOCATE_FLOW_RESPONSE_EVENT
+                                && event->sequenceNumber == seqNum) {
+                        break;
                 }
+                LOG_DBG("Client got new event %d", event->eventType);
         }
+        resp = dynamic_cast<DeallocateFlowResponseEvent*>(event);
+        assert(resp);
+
+        ipcManager->flowDeallocationResult(port_id, resp->result == 0);
 }
