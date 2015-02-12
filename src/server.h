@@ -30,19 +30,19 @@
 
 class Server: public Application
 {
-public:
-        Server(const std::string& difName,
-               const std::string& appName,
-               const std::string& appInstance) :
-		Application(difName, appName, appInstance) {}
+        public:
+                Server(const std::string& difName,
+                                const std::string& appName,
+                                const std::string& appInstance) :
+                        Application(difName, appName, appInstance) {}
 
-        void run();
+                void run();
 
-protected:
+        protected:
 
-private:
-	void startReceive(rina::Flow * flow);
-	static void timesUp(sigval_t val);
+        private:
+                void startReceive(rina::Flow * flow);
+                static void timesUp(sigval_t val);
 };
 
 #endif

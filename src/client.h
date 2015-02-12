@@ -28,50 +28,50 @@
 #include "application.h"
 
 class Client: public Application {
-	public:
-		Client(const std::string& difName_,
-				const std::string& apn,
-				const std::string& api,
-				const std::string& serverApn,
-				const std::string& serverApi,
-				bool registration,
-				unsigned int size_,
-				unsigned long long count_,
-				unsigned int duration_,
-				unsigned int rate_,
-				bool reliable_) :
-			Application(difName_, apn, api),
-			difName(difName_),
-			serverName(serverApn),
-			serverInstance(serverApi),
-			registerClient(registration),
-			sduSize(size_),
-			count(count_),
-			duration(duration_),
-			rate(rate_),
-			reliable(reliable_) {
-				if (!duration == !count)
-					throw rina::IPCException("not a valid count and duration combination!");
-			}
+        public:
+                Client(const std::string& difName_,
+                                const std::string& apn,
+                                const std::string& api,
+                                const std::string& serverApn,
+                                const std::string& serverApi,
+                                bool registration,
+                                unsigned int size_,
+                                unsigned long long count_,
+                                unsigned int duration_,
+                                unsigned int rate_,
+                                bool reliable_) :
+                        Application(difName_, apn, api),
+                        difName(difName_),
+                        serverName(serverApn),
+                        serverInstance(serverApi),
+                        registerClient(registration),
+                        sduSize(size_),
+                        count(count_),
+                        duration(duration_),
+                        rate(rate_),
+                        reliable(reliable_) {
+                                if (!duration == !count)
+                                        throw rina::IPCException("not a valid count and duration combination!");
+                        }
 
-		void run();
-	protected:
-		rina::Flow * createFlow();
-		void generateTraffic(rina::Flow * flow);
-		void waitForDeallocate();
+                void run();
+        protected:
+                rina::Flow * createFlow();
+                void generateTraffic(rina::Flow * flow);
+                void waitForDeallocate();
 
-	private:
-		std::string difName;
-		std::string serverName;
-		std::string serverInstance;
-		bool registerClient;
-		unsigned int sduSize;
-		unsigned long long count;
-		unsigned int duration;
-		unsigned int rate;
-		bool reliable;
+        private:
+                std::string difName;
+                std::string serverName;
+                std::string serverInstance;
+                bool registerClient;
+                unsigned int sduSize;
+                unsigned long long count;
+                unsigned int duration;
+                unsigned int rate;
+                bool reliable;
 
-		void busyWait(struct timespec &start, double deadline);
-		unsigned int secondsElapsed(struct timespec &start);
+                void busyWait(struct timespec &start, double deadline);
+                unsigned int secondsElapsed(struct timespec &start);
 };
 #endif//CLIENT_HPP

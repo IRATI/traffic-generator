@@ -32,46 +32,46 @@ using namespace rina;
 
 void Application::applicationRegister()
 {
-	ApplicationRegistrationInformation ari;
-	RegisterApplicationResponseEvent * resp;
-	unsigned int seqnum;
-	IPCEvent * event;
+        ApplicationRegistrationInformation ari;
+        RegisterApplicationResponseEvent * resp;
+        unsigned int seqnum;
+        IPCEvent * event;
 
-	ari.ipcProcessId = 0;  // This is an application, not an IPC process
-	ari.appName = ApplicationProcessNamingInformation(appName,
-			appInstance);
+        ari.ipcProcessId = 0;  // This is an application, not an IPC process
+        ari.appName = ApplicationProcessNamingInformation(appName,
+                        appInstance);
 
-	if (difName == string()) {
-		ari.applicationRegistrationType =
-			ApplicationRegistrationType::APPLICATION_REGISTRATION_ANY_DIF;
-	} else {
-		ari.applicationRegistrationType =
-			ApplicationRegistrationType::APPLICATION_REGISTRATION_SINGLE_DIF;
-		ari.difName = ApplicationProcessNamingInformation(difName, string());
-	}
+        if (difName == string()) {
+                ari.applicationRegistrationType =
+                        ApplicationRegistrationType::APPLICATION_REGISTRATION_ANY_DIF;
+        } else {
+                ari.applicationRegistrationType =
+                        ApplicationRegistrationType::APPLICATION_REGISTRATION_SINGLE_DIF;
+                ari.difName = ApplicationProcessNamingInformation(difName, string());
+        }
 
-	// Request the registration
-	seqnum = ipcManager->requestApplicationRegistration(ari);
+        // Request the registration
+        seqnum = ipcManager->requestApplicationRegistration(ari);
 
-	// Wait for the response to come
-	for (;;) {
-		event = ipcEventProducer->eventWait();
-		if (event && event->eventType ==
-				REGISTER_APPLICATION_RESPONSE_EVENT &&
-				event->sequenceNumber == seqnum) {
-			break;
-		}
-	}
+        // Wait for the response to come
+        for (;;) {
+                event = ipcEventProducer->eventWait();
+                if (event && event->eventType ==
+                                REGISTER_APPLICATION_RESPONSE_EVENT &&
+                                event->sequenceNumber == seqnum) {
+                        break;
+                }
+        }
 
-	resp = dynamic_cast<RegisterApplicationResponseEvent*>(event);
+        resp = dynamic_cast<RegisterApplicationResponseEvent*>(event);
 
-	// Update librina state
-	if (resp->result == 0) {
-		ipcManager->commitPendingRegistration(seqnum, resp->DIFName);
-	} else {
-		ipcManager->withdrawPendingRegistration(seqnum);
-		throw ApplicationRegistrationException("Failed to register application");
-	}
+        // Update librina state
+        if (resp->result == 0) {
+                ipcManager->commitPendingRegistration(seqnum, resp->DIFName);
+        } else {
+                ipcManager->withdrawPendingRegistration(seqnum);
+                throw ApplicationRegistrationException("Failed to register application");
+        }
 }
 
 const uint Application::maxBufferSize = 1 << 16;

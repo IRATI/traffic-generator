@@ -26,22 +26,22 @@
 
 class Application
 {
-public:
-        Application(const std::string& difName_,
-                    const std::string& appName_,
-                    const std::string& appInstance_) :
-		difName(difName_),
-		appName(appName_),
-		appInstance(appInstance_) {}
+        public:
+                Application(const std::string& difName_,
+                                const std::string& appName_,
+                                const std::string& appInstance_) :
+                        difName(difName_),
+                        appName(appName_),
+                        appInstance(appInstance_) {}
 
-        static const uint maxBufferSize;
+                static const uint maxBufferSize;
 
-protected:
-        void applicationRegister();
+        protected:
+                void applicationRegister();
 
-        std::string difName;
-        std::string appName;
-        std::string appInstance;
+                std::string difName;
+                std::string appName;
+                std::string appInstance;
 
 };
 #endif
