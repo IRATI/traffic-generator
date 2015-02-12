@@ -102,11 +102,11 @@ AC_SUBST(CXXFLAGS_EXTRA, $CXXFLAGS_EXTRA)
 
 PKG_PROG_PKG_CONFIG([0.26])
 
-#PKG_CHECK_MODULES([LIBRINA], [librina >= 0.2.0],, [
-#    AC_MSG_ERROR([Your system lacks of librina support])
-#])
-## FIXME: A cleaner solution would be better
-#AC_SUBST([LIBRINA_VERSION],`pkg-config --modversion librina`)
+PKG_CHECK_MODULES([LIBRINA], [librina >= 0.2.0],, [
+    AC_MSG_ERROR([Your system lacks of librina support])
+])
+# FIXME: A cleaner solution would be better
+AC_SUBST([LIBRINA_VERSION],`pkg-config --modversion librina`)
 
 AC_CONFIG_FILES([
     Makefile
