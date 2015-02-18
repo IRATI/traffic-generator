@@ -118,6 +118,7 @@ void Client::generateTraffic(Flow * flow)
 
         unsigned long long seq = 0;
         struct timespec start;
+        struct timespec end;
         clock_gettime(CLOCK_REALTIME, &start);
         bool running = 1;
 
@@ -137,18 +138,21 @@ void Client::generateTraffic(Flow * flow)
 
                 seq++;
                 if (seq % 997 == 0) {
-                        if (duration != 0 && secondsElapsed(start) >= duration)
+                        clock_gettime(CLOCK_REALTIME, &end);
+                        if (duration != 0 && msElapsed(start, end)/1000 >= duration)
                                 running = 0;
                         if (count != 0 && seq >= count)
                                 running = 0;
                 }
         }
-        LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes",
+        clock_gettime(CLOCK_REALTIME, &end);
+        unsigned int ms = msElapsed(start, end);
+        LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes!",
                         seq, seq * sduSize);
+        LOG_INFO("It took me %u ms to do this. That's %.4f Mbps!", ms, static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
 
         flow->readSDU(response, 50);
         unsigned long long totalBytes;
-        unsigned int ms;
         memcpy(&seq, response, sizeof(seq));
         memcpy(&totalBytes, &response[sizeof(seq)], sizeof(totalBytes));
         memcpy(&ms, &response[sizeof(seq) + sizeof(totalBytes)], sizeof(ms));

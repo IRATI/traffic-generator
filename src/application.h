@@ -43,5 +43,12 @@ class Application
                 std::string appName;
                 std::string appInstance;
 
+                static unsigned int msElapsed(const struct timespec &start,
+                                const struct timespec &end)
+                {
+                        return ((end.tv_sec - start.tv_sec) * 1000000000
+                                        + (end.tv_nsec - start.tv_nsec)) / 1000000;
+                }
+
 };
 #endif

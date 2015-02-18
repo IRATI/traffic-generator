@@ -81,9 +81,6 @@ void Server::run()
         }
 }
 
-static unsigned int msElapsed(const struct timespec &start,
-                const struct timespec &end);
-
 void Server::startReceive(Flow * flow)
 {
         unsigned long long count;
@@ -172,13 +169,6 @@ void Server::startReceive(Flow * flow)
         } catch (IPCException& ex) {
                 timer_delete(timerId);
         }
-}
-
-static unsigned int msElapsed(const struct timespec &start,
-                const struct timespec &end)
-{
-        return ((end.tv_sec - start.tv_sec) * 1000000000
-                        + (end.tv_nsec - start.tv_nsec)) / 1000000;
 }
 
 void Server::timesUp(sigval_t val)
