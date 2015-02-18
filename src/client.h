@@ -57,7 +57,9 @@ class Client: public Application {
                 void run();
         protected:
                 rina::Flow * createFlow();
-                void generateTraffic(rina::Flow * flow);
+                void setup(rina::Flow * flow);
+                void constantBitRate(rina::Flow * flow);
+                void receiveServerStats(rina::Flow * flow);
                 void destroyFlow(rina::Flow * flow);
 
         private:

@@ -46,7 +46,9 @@ void Client::run()
         flow = createFlow();
 
         if (flow) {
-                generateTraffic(flow);
+                setup(flow);
+                constantBitRate(flow);
+                receiveServerStats(flow);
                 destroyFlow(flow);
         }
 }
@@ -100,7 +102,7 @@ Flow * Client::createFlow()
         return flow;
 }
 
-void Client::generateTraffic(Flow * flow)
+void Client::setup(Flow * flow)
 {
         char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize)];
 
@@ -115,21 +117,24 @@ void Client::generateTraffic(Flow * flow)
         flow->readSDU(response, 50);
 
         LOG_INFO("Server response: %s", response);
+}
 
+void Client::constantBitRate(Flow * flow)
+{
         unsigned long long seq = 0;
         struct timespec start;
         struct timespec end;
-        clock_gettime(CLOCK_REALTIME, &start);
         bool running = 1;
-
         double byteMilliRate;
         double intervalTime = 0;
+        char toSend[sduSize];
+
         if (rate) {
                 byteMilliRate = rate / 8.0;
                 intervalTime = sduSize / byteMilliRate;
         }
 
-        char toSend[sduSize];
+        clock_gettime(CLOCK_REALTIME, &start);
         while (running) {
                 memcpy(toSend, &seq, sizeof(seq));
                 flow->writeSDU(toSend, sduSize);
@@ -146,19 +151,30 @@ void Client::generateTraffic(Flow * flow)
                 }
         }
         clock_gettime(CLOCK_REALTIME, &end);
+
         unsigned int ms = msElapsed(start, end);
         LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes!",
                         seq, seq * sduSize);
-        LOG_INFO("It took me %u ms to do this. That's %.4f Mbps!", ms, static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
+        LOG_INFO("It took me %u ms to do this. That's %.4f Mbps!",
+                        ms, static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
+}
+
+void Client::receiveServerStats(Flow * flow)
+{
+        char response[50];
+        unsigned long long totalBytes;
+        unsigned long long sduCount;
+        unsigned int ms;
 
         flow->readSDU(response, 50);
-        unsigned long long totalBytes;
-        memcpy(&seq, response, sizeof(seq));
-        memcpy(&totalBytes, &response[sizeof(seq)], sizeof(totalBytes));
-        memcpy(&ms, &response[sizeof(seq) + sizeof(totalBytes)], sizeof(ms));
+        memcpy(&sduCount, response, sizeof(sduCount));
+        memcpy(&totalBytes, &response[sizeof(sduCount)], sizeof(totalBytes));
+        memcpy(&ms, &response[sizeof(sduCount) + sizeof(totalBytes)], sizeof(ms));
 
-        LOG_INFO("Result: %llu SDUs and %llu bytes in %lu ms", seq, totalBytes, ms);
-        LOG_INFO("\tthat's %.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
+        LOG_INFO("Result: %llu SDUs and %llu bytes in %lu ms",
+                        sduCount, totalBytes, ms);
+        LOG_INFO("\tthat's %.4f Mbps",
+                        static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
 }
 
 void Client::busyWait(struct timespec &start, double deadline)
@@ -167,18 +183,9 @@ void Client::busyWait(struct timespec &start, double deadline)
         clock_gettime(CLOCK_REALTIME, &now);
 
         while (deadline > (((now.tv_sec - start.tv_sec) * 1000000
-                                        - (now.tv_nsec - start.tv_nsec) / 1000) / 1000))
+                                        - (now.tv_nsec - start.tv_nsec) / 1000)
+                                / 1000))
                 clock_gettime(CLOCK_REALTIME, &now);
-}
-
-unsigned int Client::secondsElapsed(struct timespec &start)
-{
-        struct timespec now;
-        clock_gettime(CLOCK_REALTIME, &now);
-
-        int cor = (now.tv_nsec < start.tv_nsec) ? 1 : 0;
-
-        return now.tv_sec - start.tv_sec - cor;
 }
 
 void Client::destroyFlow(Flow * flow)
