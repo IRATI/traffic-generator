@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <time.h>
 #include <string.h>
+#include <endian.h>
 
 #define RINA_PREFIX "traffic-generator"
 #include <librina/logs.h>
@@ -94,15 +95,18 @@ void Server::startReceive(Flow * flow)
         memcpy(&count, initData, sizeof(count));
         memcpy(&duration, &initData[sizeof(count)], sizeof(duration));
         memcpy(&sduSize, &initData[sizeof(count) + sizeof(duration)], sizeof(sduSize));
+        count = be64toh(count);
+        duration = be32toh(duration);
+        sduSize = be32toh(sduSize);
 
         char response[] = "Go ahead!";
         struct timespec start;
         struct timespec end;
 
+        LOG_INFO("Starting test:\n\tduration: %u\n\tcount: %llu\n\tsduSize: %u", duration, count, sduSize);
+
         clock_gettime(CLOCK_REALTIME, &start);
         flow->writeSDU(response, sizeof(response));
-
-        LOG_INFO("Starting test:\n\tduration: %u\n\tcount: %llu\n\tsduSize: %u", duration, count, sduSize);
 
         int running = true;
         char data[sduSize];
@@ -156,11 +160,14 @@ void Server::startReceive(Flow * flow)
                 }
                 clock_gettime(CLOCK_REALTIME, &end);
                 unsigned int ms = msElapsed(start, end);
+                unsigned int nms = htobe32(ms);
+                unsigned long long ncount = htobe64(totalSdus);
+                unsigned long long nbytes = htobe64(totalBytes);
 
-                char statistics[sizeof(totalSdus) + sizeof(totalBytes) + sizeof(ms)];
-                memcpy(statistics, &totalSdus, sizeof(totalSdus));
-                memcpy(&statistics[sizeof(totalSdus)], &totalBytes, sizeof(totalBytes));
-                memcpy(&statistics[sizeof(totalSdus) + sizeof(totalBytes)], &ms, sizeof(ms));
+                char statistics[sizeof(ncount) + sizeof(nbytes) + sizeof(nms)];
+                memcpy(statistics, &ncount, sizeof(ncount));
+                memcpy(&statistics[sizeof(ncount)], &nbytes, sizeof(nbytes));
+                memcpy(&statistics[sizeof(ncount) + sizeof(nbytes)], &nms, sizeof(nms));
                 
                 flow->writeSDU(statistics, sizeof(statistics));
 
