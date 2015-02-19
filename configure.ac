@@ -127,7 +127,7 @@ AC_CONFIG_FILES([
     src/Makefile
     src/tclap/Makefile
 
-#    doc/Makefile
+    doc/Makefile
 ])
 
 AC_OUTPUT
