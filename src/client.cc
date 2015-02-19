@@ -27,6 +27,7 @@
 #include <thread>
 #include <unistd.h>
 #include <string.h>
+#include <endian.h>
 
 #define RINA_PREFIX     "traffic-generator"
 #include <librina/logs.h>
@@ -106,14 +107,19 @@ void Client::setup(Flow * flow)
 {
         char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize)];
 
-        memcpy(initData, &count, sizeof(count));
-        memcpy(&initData[sizeof(count)], &duration, sizeof(duration));
-        memcpy(&initData[sizeof(count) + sizeof(duration)], &sduSize, sizeof(sduSize));
+        unsigned long long ncount = htobe64(count);
+        unsigned int ndur = htobe32(duration);
+        unsigned int nsize = htobe32(sduSize);
+
+        memcpy(initData, &ncount, sizeof(ncount));
+        memcpy(&initData[sizeof(ncount)], &ndur, sizeof(ndur));
+        memcpy(&initData[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
         flow->writeSDU(initData, sizeof(count) + sizeof(duration) + sizeof(sduSize));
         LOG_INFO("starting test");
 
-        char response[50];
+        char response[51];
+        response[50] = '\0';
         flow->readSDU(response, 50);
 
         LOG_INFO("Server response: %s", response);
@@ -170,6 +176,9 @@ void Client::receiveServerStats(Flow * flow)
         memcpy(&sduCount, response, sizeof(sduCount));
         memcpy(&totalBytes, &response[sizeof(sduCount)], sizeof(totalBytes));
         memcpy(&ms, &response[sizeof(sduCount) + sizeof(totalBytes)], sizeof(ms));
+        sduCount = be64toh(sduCount);
+        totalBytes = be64toh(totalBytes);
+        ms = be32toh(ms);
 
         LOG_INFO("Result: %llu SDUs and %llu bytes in %lu ms",
                         sduCount, totalBytes, ms);
