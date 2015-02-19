@@ -1,8 +1,9 @@
 /*
  * Traffic generator
  *
- *   Addy Bombeke  <addy.bombeke@ugent.be>
- *   Douwe De Bock <douwe.debock@ugent.be>
+ *   Addy Bombeke          <addy.bombeke@ugent.be>
+ *   Douwe De Bock         <douwe.debock@ugent.be>
+ *   Francesco Salvestrini <f.salvestrini@nextworks.it>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +21,11 @@
  */
 
 #include <iostream>
-#include <librina/librina.h>
 
 #define RINA_PREFIX "traffic-generator"
 
 #include <librina/logs.h>
+#include <librina/librina.h>
 
 #include "application.h"
 
@@ -75,4 +76,5 @@ void Application::applicationRegister()
         }
 }
 
-const uint Application::maxBufferSize = 1 << 16;
+// FIXME: Are we sure ?
+const unsigned int Application::maxBufferSize = 1 << 16;
