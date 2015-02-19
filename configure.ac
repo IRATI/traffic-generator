@@ -105,6 +105,19 @@ PKG_PROG_PKG_CONFIG([0.26])
 PKG_CHECK_MODULES([LIBRINA], [librina >= 0.2.0],, [
     AC_MSG_ERROR([Your system lacks of librina support])
 ])
+
+DX_DOXYGEN_FEATURE(ON)
+DX_DOT_FEATURE(ON)
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(ON)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(ON)
+DX_PS_FEATURE(OFF)
+DX_INIT_DOXYGEN($PACKAGE_NAME,[doxygen.cfg],[doxygen])
+
 # FIXME: A cleaner solution would be better
 AC_SUBST([LIBRINA_VERSION],`pkg-config --modversion librina`)
 
@@ -113,6 +126,8 @@ AC_CONFIG_FILES([
 
     src/Makefile
     src/tclap/Makefile
+
+    doc/Makefile
 ])
 
 AC_OUTPUT
