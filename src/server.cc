@@ -20,7 +20,7 @@
  */
 
 #include <iostream>
-#include <thread>
+#include <boost/thread.hpp>
 #include <time.h>
 #include <signal.h>
 #include <time.h>
@@ -41,7 +41,7 @@ void Server::run()
 
         for(;;) {
                 IPCEvent * event = ipcEventProducer->eventWait();
-                Flow * flow = nullptr;
+                Flow * flow = 0;
                 unsigned int port_id;
 
                 if (!event)
@@ -63,7 +63,7 @@ void Server::run()
                                 {
                                         flow = ipcManager->allocateFlowResponse(*dynamic_cast<FlowRequestEvent*>(event), 0, true);
                                         LOG_INFO("New flow allocated [port-id = %d]", flow->getPortId());
-                                        thread t(&Server::startReceive, this, flow);
+                                        boost::thread t(&Server::startReceive, this, flow);
                                         t.detach();
 
                                         break;

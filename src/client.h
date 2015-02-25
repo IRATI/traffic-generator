@@ -22,7 +22,6 @@
 #define CLIENT_HPP
 
 #include <string>
-#include <chrono>
 #include <librina/librina.h>
 
 #include "application.h"

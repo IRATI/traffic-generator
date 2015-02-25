@@ -15,7 +15,9 @@ rina_tgen_SOURCES  =				\
 	client.cc              client.h		\
 	main.cc
 
-rina_tgen_LDADD    = $(LIBRINA_LIBS) -lrt
+rina_tgen_LDADD    = $(LIBRINA_LIBS) -lrt	\
+		     -L/usr/include/boost	\
+		     -lboost_thread
 rina_tgen_CPPFLAGS =				\
 	$(LIBRINA_CFLAGS)			\
 	$(CPPFLAGS_EXTRA)			\

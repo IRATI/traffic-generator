@@ -45,10 +45,10 @@ void Application::applicationRegister()
 
         if (difName == string()) {
                 ari.applicationRegistrationType =
-                        ApplicationRegistrationType::APPLICATION_REGISTRATION_ANY_DIF;
+                        APPLICATION_REGISTRATION_ANY_DIF;
         } else {
                 ari.applicationRegistrationType =
-                        ApplicationRegistrationType::APPLICATION_REGISTRATION_SINGLE_DIF;
+                        APPLICATION_REGISTRATION_SINGLE_DIF;
                 ari.difName = ApplicationProcessNamingInformation(difName, string());
         }
 

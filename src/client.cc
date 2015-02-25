@@ -22,10 +22,6 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
-#include <cassert>
-#include <random>
-#include <thread>
-#include <unistd.h>
 #include <string.h>
 #include <endian.h>
 
@@ -56,11 +52,11 @@ void Client::run()
 
 Flow * Client::createFlow()
 {
-        Flow * flow = nullptr;
+        Flow * flow = 0;
         AllocateFlowRequestResultEvent * afrrevent;
         FlowSpecification qosspec;
         IPCEvent * event;
-        uint seqnum;
+        unsigned int seqnum;
 
         if (reliable)
                 qosspec.maxAllowableGap = 0;
@@ -96,7 +92,7 @@ Flow * Client::createFlow()
                         afrrevent->difName);
         if (!flow || flow->getPortId() == -1) {
                 LOG_ERR("Failed to allocate a flow");
-                return nullptr;
+                return 0;
         } else
                 LOG_DBG("Port id = %d", flow->getPortId());
 
@@ -199,7 +195,7 @@ void Client::busyWait(struct timespec &start, double deadline)
 
 void Client::destroyFlow(Flow * flow)
 {
-        DeallocateFlowResponseEvent * resp = nullptr;
+        DeallocateFlowResponseEvent * resp = 0;
         unsigned int seqNum;
         IPCEvent * event;
         int port_id = flow->getPortId();
@@ -215,7 +211,6 @@ void Client::destroyFlow(Flow * flow)
                 LOG_DBG("Client got new event %d", event->eventType);
         }
         resp = dynamic_cast<DeallocateFlowResponseEvent*>(event);
-        assert(resp);
 
         ipcManager->flowDeallocationResult(port_id, resp->result == 0);
 }
