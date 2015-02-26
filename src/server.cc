@@ -130,6 +130,7 @@ void Server::startReceive(Flow * flow)
                 struct sigevent event;
                 struct itimerspec durationTimer;
 
+                memset(&event, 0, sizeof(event));
                 event.sigev_notify = SIGEV_THREAD;
                 event.sigev_value.sival_ptr = &running;
                 event.sigev_notify_function = &timesUp;

@@ -24,6 +24,10 @@
 #include <sstream>
 #include <string.h>
 #include <endian.h>
+#include <ctime>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/poisson_distribution.hpp>
+#include <boost/random/variate_generator.hpp>
 
 #define RINA_PREFIX     "traffic-generator"
 #include <librina/logs.h>
@@ -44,7 +48,10 @@ void Client::run()
 
         if (flow) {
                 setup(flow);
-                constantBitRate(flow);
+                if (!std::string("CBR").compare(testType))
+                        constantBitRate(flow);
+                else if (!std::string("poisson").compare(testType))
+                        poissonDistribution(flow);
                 receiveServerStats(flow);
                 destroyFlow(flow);
         }
@@ -111,7 +118,8 @@ void Client::setup(Flow * flow)
         memcpy(&initData[sizeof(ncount)], &ndur, sizeof(ndur));
         memcpy(&initData[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
-        flow->writeSDU(initData, sizeof(count) + sizeof(duration) + sizeof(sduSize));
+        flow->writeSDU(initData,
+                        sizeof(count) + sizeof(duration) + sizeof(sduSize));
         LOG_INFO("starting test");
 
         char response[51];
@@ -146,7 +154,57 @@ void Client::constantBitRate(Flow * flow)
                 seq++;
                 if (seq % 997 == 0) {
                         clock_gettime(CLOCK_REALTIME, &end);
-                        if (duration != 0 && msElapsed(start, end)/1000 >= duration)
+                        if (duration != 0 &&
+                                        msElapsed(start, end)/1000 >= duration)
+                                running = 0;
+                        if (count != 0 && seq >= count)
+                                running = 0;
+                }
+        }
+        clock_gettime(CLOCK_REALTIME, &end);
+
+        unsigned int ms = msElapsed(start, end);
+        LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes!",
+                        seq, seq * sduSize);
+        LOG_INFO("It took me %u ms to do this. That's %.4f Mbps!",
+                        ms, static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
+}
+
+void Client::poissonDistribution(Flow * flow)
+{
+        unsigned long long seq = 0;
+        double timeline = 0;
+        struct timespec start;
+        struct timespec end;
+        bool running = 1;
+        double byteMilliRate;
+        double intervalTime = 0;
+        char toSend[sduSize];
+
+        if (rate) {
+                byteMilliRate = rate / 8.0;
+                intervalTime = sduSize / byteMilliRate;
+        }
+
+        boost::mt19937 gen;
+        gen.seed(time(NULL));
+        boost::poisson_distribution<int> pdist((int)(intervalTime * 1000000));
+        boost::variate_generator<boost::mt19937,
+                boost::poisson_distribution<int> > rvt(gen, pdist);
+
+        clock_gettime(CLOCK_REALTIME, &start);
+        while (running) {
+                memcpy(toSend, &seq, sizeof(seq));
+                flow->writeSDU(toSend, sduSize);
+
+                busyWait(start, timeline);
+
+                timeline += rvt() / 1000000.0;
+                seq++;
+                if (seq % 997 == 0) {
+                        clock_gettime(CLOCK_REALTIME, &end);
+                        if (duration != 0 &&
+                                        msElapsed(start, end)/1000 >= duration)
                                 running = 0;
                         if (count != 0 && seq >= count)
                                 running = 0;

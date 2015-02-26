@@ -44,6 +44,7 @@ static std::string serverApi;
 static std::string clientApn;
 static std::string clientApi;
 static std::string difName;
+static std::string testType;
 static bool reliable;
 
 void parseArgs(int argc, char *argv[])
@@ -114,8 +115,14 @@ void parseArgs(int argc, char *argv[])
                                 "unsigned integer");
                 TCLAP::SwitchArg reliableArg("",
                                 "reliable",
-                                "use a reliable flow",
+                                "Use a reliable flow",
                                 false);
+                TCLAP::ValueArg<std::string> typeArg("",
+                                "type",
+                                "Test type: CBR, poisson",
+                                false,
+                                "CBR",
+                                "string");
 
                 cmd.add(listenArg);
                 cmd.add(countArg);
@@ -129,6 +136,7 @@ void parseArgs(int argc, char *argv[])
                 cmd.add(rateArg);
                 cmd.add(durationArg);
                 cmd.add(reliableArg);
+                cmd.add(typeArg);
 
                 cmd.parse(argc, argv);
 
@@ -144,6 +152,7 @@ void parseArgs(int argc, char *argv[])
                 rate = rateArg.getValue();
                 duration = durationArg.getValue();
                 reliable = reliableArg.getValue();
+                testType = typeArg.getValue();
 
                 if (size > Application::maxBufferSize) {
                         size = Application::maxBufferSize;
@@ -175,7 +184,7 @@ int main(int argc, char * argv[])
                 } else {
                         // Client mode
                         Client c(difName, clientApn, clientApi, serverApn,
-                                        serverApi, registration,
+                                        serverApi, registration, testType,
                                         size, count, duration, rate, reliable);
 
                         c.run();

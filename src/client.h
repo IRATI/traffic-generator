@@ -34,6 +34,7 @@ class Client: public Application {
                                 const std::string& serverApn,
                                 const std::string& serverApi,
                                 bool registration,
+                                const std::string& testType_,
                                 unsigned int size_,
                                 unsigned long long count_,
                                 unsigned int duration_,
@@ -44,6 +45,7 @@ class Client: public Application {
                         serverName(serverApn),
                         serverInstance(serverApi),
                         registerClient(registration),
+                        testType(testType_),
                         sduSize(size_),
                         count(count_),
                         duration(duration_),
@@ -58,6 +60,7 @@ class Client: public Application {
                 rina::Flow * createFlow();
                 void setup(rina::Flow * flow);
                 void constantBitRate(rina::Flow * flow);
+                void poissonDistribution(rina::Flow * flow);
                 void receiveServerStats(rina::Flow * flow);
                 void destroyFlow(rina::Flow * flow);
 
@@ -66,6 +69,7 @@ class Client: public Application {
                 std::string serverName;
                 std::string serverInstance;
                 bool registerClient;
+                std::string testType;
                 unsigned int sduSize;
                 unsigned long long count;
                 unsigned int duration;
