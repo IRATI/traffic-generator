@@ -1,3 +1,0 @@
-./bootstrap
-PKG_CONFIG_PATH=/usr/local/irati/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --prefix=/usr/local/irati/
-sudo make
