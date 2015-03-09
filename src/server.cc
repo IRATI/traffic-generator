@@ -19,13 +19,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <iostream>
-#include <boost/thread.hpp>
 #include <time.h>
 #include <signal.h>
 #include <time.h>
 #include <string.h>
 #include <endian.h>
+
+#include <iostream>
+#include <boost/thread.hpp>
 
 #define RINA_PREFIX "traffic-generator"
 #include <librina/logs.h>
