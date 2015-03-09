@@ -97,6 +97,12 @@ AS_IF([test "$want_debug" = "yes"],[
     ])
 ])
 
+AX_BOOST_BASE([1.55],,[
+    AC_MSG_ERROR([Your system lacks of boost support])
+])
+AX_BOOST_THREAD
+AX_BOOST_SYSTEM
+
 AC_SUBST(CPPFLAGS_EXTRA, $CPPFLAGS_EXTRA)
 AC_SUBST(CXXFLAGS_EXTRA, $CXXFLAGS_EXTRA)
 
