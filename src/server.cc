@@ -103,6 +103,7 @@ void Server::startReceive(Flow * flow)
         char response[] = "Go ahead!";
         struct timespec start;
         struct timespec end;
+        struct timespec tmp;
 
         LOG_INFO("Starting test:\n\tduration: %u\n\tcount: %llu\n\tsduSize: %u", duration, count, sduSize);
 
@@ -149,8 +150,10 @@ void Server::startReceive(Flow * flow)
 
         unsigned long long totalSdus = 1;
         unsigned long long totalBytes = 0;
+        unsigned int ms;
         try {
                 clock_gettime(CLOCK_REALTIME, &start);
+                clock_gettime(CLOCK_REALTIME, &tmp);
                 while (running) {
                         totalBytes += flow->readSDU(data, sduSize);
                         totalSdus++;
@@ -159,9 +162,20 @@ void Server::startReceive(Flow * flow)
                                 if (totalSdus >= count)
                                         running = 0;
                         }
+                        if (interval && totalSdus % interval == 0) {
+                                clock_gettime(CLOCK_REALTIME, &end);
+                                ms = msElapsed(tmp, end);
+                                LOG_INFO("%llu SDUs in %lu ms => %.4f Mbps",
+                                                totalSdus, ms,
+                                                static_cast<float>(
+                                                        (totalBytes * 8.0) /
+                                                        (ms * 1000)));
+
+                                clock_gettime(CLOCK_REALTIME, &tmp);
+                        }
                 }
                 clock_gettime(CLOCK_REALTIME, &end);
-                unsigned int ms = msElapsed(start, end);
+                ms = msElapsed(start, end);
                 unsigned int nms = htobe32(ms);
                 unsigned long long ncount = htobe64(totalSdus);
                 unsigned long long nbytes = htobe64(totalBytes);
