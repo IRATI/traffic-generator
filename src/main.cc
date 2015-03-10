@@ -58,7 +58,7 @@ void parseArgs(int argc, char *argv[])
                                 false);
                 TCLAP::ValueArg<std::string> difArg("d",
                                 "dif",
-                                "The name of the DIF to register at (empty means 'any DIF')",
+                                "The name of the DIF to use (empty means 'any DIF')",
                                 false,
                                 "",
                                 "string");
