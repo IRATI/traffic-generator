@@ -33,8 +33,10 @@ class Server: public Application
         public:
                 Server(const std::string& difName,
                                 const std::string& appName,
-                                const std::string& appInstance) :
-                        Application(difName, appName, appInstance) {}
+                                const std::string& appInstance,
+                                unsigned int interval_) :
+                        Application(difName, appName, appInstance),
+                        interval(interval_) {}
 
                 void run();
 
@@ -43,6 +45,7 @@ class Server: public Application
         private:
                 void startReceive(rina::Flow * flow);
                 static void timesUp(sigval_t val);
+                unsigned int interval;
 };
 
 #endif

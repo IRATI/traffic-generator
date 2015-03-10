@@ -34,7 +34,7 @@ class Client: public Application {
                                 const std::string& serverApn,
                                 const std::string& serverApi,
                                 bool registration,
-                                const std::string& testType_,
+                                const std::string& distributionType_,
                                 unsigned int size_,
                                 unsigned long long count_,
                                 unsigned int duration_,
@@ -45,7 +45,7 @@ class Client: public Application {
                         serverName(serverApn),
                         serverInstance(serverApi),
                         registerClient(registration),
-                        testType(testType_),
+                        distributionType(distributionType_),
                         sduSize(size_),
                         count(count_),
                         duration(duration_),
@@ -69,7 +69,7 @@ class Client: public Application {
                 std::string serverName;
                 std::string serverInstance;
                 bool registerClient;
-                std::string testType;
+                std::string distributionType;
                 unsigned int sduSize;
                 unsigned long long count;
                 unsigned int duration;
