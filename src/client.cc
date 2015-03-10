@@ -120,13 +120,12 @@ void Client::setup(Flow * flow)
 
         flow->writeSDU(initData,
                         sizeof(count) + sizeof(duration) + sizeof(sduSize));
-        LOG_INFO("starting test");
 
         char response[51];
         response[50] = '\0';
         flow->readSDU(response, 50);
 
-        LOG_INFO("Server response: %s", response);
+        LOG_INFO("starting test");
 }
 
 void Client::constantBitRate(Flow * flow)
@@ -164,7 +163,7 @@ void Client::constantBitRate(Flow * flow)
         clock_gettime(CLOCK_REALTIME, &end);
 
         unsigned int ms = msElapsed(start, end);
-        LOG_INFO("sentStatistics %llu SDUs, %llu bytes in %u ms",
+        LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u ms",
                         seq, seq * sduSize, ms);
         LOG_INFO("\t=> %.4f Mbps!",
                         static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
@@ -213,7 +212,7 @@ void Client::poissonDistribution(Flow * flow)
         clock_gettime(CLOCK_REALTIME, &end);
 
         unsigned int ms = msElapsed(start, end);
-        LOG_INFO("sent statistics %llu SDUs, %llu bytes in %u ms",
+        LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u ms",
                         seq, seq * sduSize, ms);
         LOG_INFO("\t=> %.4f Mbps!",
                         static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
@@ -234,7 +233,7 @@ void Client::receiveServerStats(Flow * flow)
         totalBytes = be64toh(totalBytes);
         ms = be32toh(ms);
 
-        LOG_INFO("Server result: %llu SDUs and %llu bytes in %lu ms",
+        LOG_INFO("Server result: %llu SDUs, %llu bytes in %lu ms",
                         sduCount, totalBytes, ms);
         LOG_INFO("\t=> %.4f Mbps",
                         static_cast<float>((totalBytes * 8.0) / (ms * 1000)));

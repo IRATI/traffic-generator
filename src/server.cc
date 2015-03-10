@@ -173,8 +173,8 @@ void Server::startReceive(Flow * flow)
                 
                 flow->writeSDU(statistics, sizeof(statistics));
 
-                LOG_INFO("Received %llu SDUs and %llu bytes in %lu ms", totalSdus, totalBytes, ms);
-                LOG_INFO("\t%.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
+                LOG_INFO("Result: %llu SDUs, %llu bytes in %lu ms", totalSdus, totalBytes, ms);
+                LOG_INFO("\t=> %.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
         } catch (IPCException& ex) {
                 timer_delete(timerId);
         }
