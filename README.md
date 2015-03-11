@@ -3,6 +3,7 @@ the GN3+ IRINA project.
 
 The contributing members of the project are (alphabetical order):
 
+* Addy Bombeke - Ghent University/iMinds, BE
 * Dimitri Staessens - Ghent University/iMinds, BE
 * Douwe De Bock - Ghent University/iMinds, BE
 * Francesco Salvestrini - Nextworks s.r.l., IT
