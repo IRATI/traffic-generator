@@ -65,9 +65,9 @@ Flow * Client::createFlow()
         IPCEvent * event;
         unsigned int seqnum;
 
-        if (!std::string("relaible").compare(qoscube))
+        if (!std::string("reliable").compare(qoscube))
                 qosspec.maxAllowableGap = 0;
-        else if (!std::string("unrelaible").compare(qoscube))
+        else if (!std::string("unreliable").compare(qoscube))
                 qosspec.maxAllowableGap = 1;
 	else
 		throw IPCException("not a valid qoscube");
