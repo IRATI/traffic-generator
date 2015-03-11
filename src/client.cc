@@ -65,10 +65,12 @@ Flow * Client::createFlow()
         IPCEvent * event;
         unsigned int seqnum;
 
-        if (reliable)
+        if (!std::string("relaible").compare(qoscube))
                 qosspec.maxAllowableGap = 0;
-        else
+        else if (!std::string("unrelaible").compare(qoscube))
                 qosspec.maxAllowableGap = 1;
+	else
+		throw IPCException("not a valid qoscube");
 
         if (difName != string()) {
                 seqnum = ipcManager->requestFlowAllocationInDIF(

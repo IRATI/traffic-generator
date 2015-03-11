@@ -46,7 +46,7 @@ static std::string clientApn;
 static std::string clientApi;
 static std::string difName;
 static std::string distributionType;
-static bool reliable;
+static std::string qoscube;
 
 void parseArgs(int argc, char *argv[])
 {
@@ -114,10 +114,12 @@ void parseArgs(int argc, char *argv[])
                                 false,
                                 0,
                                 "unsigned integer");
-                TCLAP::SwitchArg reliableArg("",
-                                "reliable",
-                                "Use a reliable flow",
-                                false);
+                TCLAP::ValueArg<std::string> qoscubeArg("",
+                                "qoscube",
+                                "Specify the qos cube to use for flow allocation",
+                                false,
+                                "unreliable",
+                                "string");
                 TCLAP::ValueArg<std::string> distributionArg("",
                                 "distribution",
                                 "Distribution type: CBR, poisson",
@@ -142,7 +144,7 @@ void parseArgs(int argc, char *argv[])
                 cmd.add(difArg);
                 cmd.add(rateArg);
                 cmd.add(durationArg);
-                cmd.add(reliableArg);
+                cmd.add(qoscubeArg);
                 cmd.add(distributionArg);
                 cmd.add(intervalArg);
 
@@ -159,7 +161,7 @@ void parseArgs(int argc, char *argv[])
                 difName = difArg.getValue();
                 rate = rateArg.getValue();
                 duration = durationArg.getValue();
-                reliable = reliableArg.getValue();
+                qoscube = qoscubeArg.getValue();
                 distributionType = distributionArg.getValue();
                 interval = intervalArg.getValue();
 
@@ -194,7 +196,7 @@ int main(int argc, char * argv[])
                         // Client mode
                         Client c(difName, clientApn, clientApi, serverApn,
                                         serverApi, registration, distributionType,
-                                        size, count, duration, rate, reliable);
+                                        size, count, duration, rate, qoscube);
 
                         c.run();
                 }

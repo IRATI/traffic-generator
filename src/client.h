@@ -39,7 +39,7 @@ class Client: public Application {
                                 unsigned long long count_,
                                 unsigned int duration_,
                                 unsigned int rate_,
-                                bool reliable_) :
+                                bool qoscube_) :
                         Application(difName_, apn, api),
                         difName(difName_),
                         serverName(serverApn),
@@ -50,7 +50,7 @@ class Client: public Application {
                         count(count_),
                         duration(duration_),
                         rate(rate_),
-                        reliable(reliable_) {
+                        qoscube(qoscube_) {
                                 if (!duration == !count)
                                         throw rina::IPCException("not a valid count and duration combination!");
                         }
@@ -70,11 +70,11 @@ class Client: public Application {
                 std::string serverInstance;
                 bool registerClient;
                 std::string distributionType;
+                std::string qoscube;
                 unsigned int sduSize;
                 unsigned long long count;
                 unsigned int duration;
                 unsigned int rate;
-                bool reliable;
 
                 void busyWait(struct timespec &start, double deadline);
                 unsigned int secondsElapsed(struct timespec &start);
