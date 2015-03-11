@@ -39,7 +39,7 @@ class Client: public Application {
                                 unsigned long long count_,
                                 unsigned int duration_,
                                 unsigned int rate_,
-                                bool qoscube_) :
+                                const std::string& qoscube_) :
                         Application(difName_, apn, api),
                         difName(difName_),
                         serverName(serverApn),
@@ -70,11 +70,11 @@ class Client: public Application {
                 std::string serverInstance;
                 bool registerClient;
                 std::string distributionType;
-                std::string qoscube;
                 unsigned int sduSize;
                 unsigned long long count;
                 unsigned int duration;
                 unsigned int rate;
+                std::string qoscube;
 
                 void busyWait(struct timespec &start, double deadline);
                 unsigned int secondsElapsed(struct timespec &start);
