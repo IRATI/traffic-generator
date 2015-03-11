@@ -39,12 +39,13 @@ static unsigned long long count;
 static unsigned int size;
 static unsigned int rate;
 static unsigned int duration;
+static unsigned int interval;
 static std::string serverApn;
 static std::string serverApi;
 static std::string clientApn;
 static std::string clientApi;
 static std::string difName;
-static std::string testType;
+static std::string distributionType;
 static bool reliable;
 
 void parseArgs(int argc, char *argv[])
@@ -117,12 +118,18 @@ void parseArgs(int argc, char *argv[])
                                 "reliable",
                                 "Use a reliable flow",
                                 false);
-                TCLAP::ValueArg<std::string> typeArg("",
-                                "type",
-                                "Test type: CBR, poisson",
+                TCLAP::ValueArg<std::string> distributionArg("",
+                                "distribution",
+                                "Distribution type: CBR, poisson",
                                 false,
                                 "CBR",
                                 "string");
+                TCLAP::ValueArg<unsigned int> intervalArg("",
+                                "interval",
+                                "report statistics every x SDUs",
+                                false,
+                                100000000,
+                                "unsigned integer");
 
                 cmd.add(listenArg);
                 cmd.add(countArg);
@@ -136,7 +143,8 @@ void parseArgs(int argc, char *argv[])
                 cmd.add(rateArg);
                 cmd.add(durationArg);
                 cmd.add(reliableArg);
-                cmd.add(typeArg);
+                cmd.add(distributionArg);
+                cmd.add(intervalArg);
 
                 cmd.parse(argc, argv);
 
@@ -152,7 +160,8 @@ void parseArgs(int argc, char *argv[])
                 rate = rateArg.getValue();
                 duration = durationArg.getValue();
                 reliable = reliableArg.getValue();
-                testType = typeArg.getValue();
+                distributionType = distributionArg.getValue();
+                interval = intervalArg.getValue();
 
                 if (size > Application::maxBufferSize) {
                         size = Application::maxBufferSize;
@@ -178,13 +187,13 @@ int main(int argc, char * argv[])
 
                 if (listen) {
                         // Server mode
-                        Server s(difName, serverApn, serverApi);
+                        Server s(difName, serverApn, serverApi, interval);
 
                         s.run();
                 } else {
                         // Client mode
                         Client c(difName, clientApn, clientApi, serverApn,
-                                        serverApi, registration, testType,
+                                        serverApi, registration, distributionType,
                                         size, count, duration, rate, reliable);
 
                         c.run();

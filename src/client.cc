@@ -48,9 +48,9 @@ void Client::run()
 
         if (flow) {
                 setup(flow);
-                if (!std::string("CBR").compare(testType))
+                if (!std::string("CBR").compare(distributionType))
                         constantBitRate(flow);
-                else if (!std::string("poisson").compare(testType))
+                else if (!std::string("poisson").compare(distributionType))
                         poissonDistribution(flow);
                 receiveServerStats(flow);
                 destroyFlow(flow);
@@ -164,10 +164,10 @@ void Client::constantBitRate(Flow * flow)
         clock_gettime(CLOCK_REALTIME, &end);
 
         unsigned int ms = msElapsed(start, end);
-        LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes!",
-                        seq, seq * sduSize);
-        LOG_INFO("It took me %u ms to do this. That's %.4f Mbps!",
-                        ms, static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
+        LOG_INFO("sentStatistics %llu SDUs, %llu bytes in %u ms",
+                        seq, seq * sduSize, ms);
+        LOG_INFO("\t=> %.4f Mbps!",
+                        static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
 }
 
 void Client::poissonDistribution(Flow * flow)
@@ -213,10 +213,10 @@ void Client::poissonDistribution(Flow * flow)
         clock_gettime(CLOCK_REALTIME, &end);
 
         unsigned int ms = msElapsed(start, end);
-        LOG_INFO("I did a good job, sending %llu SDUs. Thats %llu bytes!",
-                        seq, seq * sduSize);
-        LOG_INFO("It took me %u ms to do this. That's %.4f Mbps!",
-                        ms, static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
+        LOG_INFO("sent statistics %llu SDUs, %llu bytes in %u ms",
+                        seq, seq * sduSize, ms);
+        LOG_INFO("\t=> %.4f Mbps!",
+                        static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
 }
 
 void Client::receiveServerStats(Flow * flow)
@@ -234,9 +234,9 @@ void Client::receiveServerStats(Flow * flow)
         totalBytes = be64toh(totalBytes);
         ms = be32toh(ms);
 
-        LOG_INFO("Result: %llu SDUs and %llu bytes in %lu ms",
+        LOG_INFO("Server result: %llu SDUs and %llu bytes in %lu ms",
                         sduCount, totalBytes, ms);
-        LOG_INFO("\tthat's %.4f Mbps",
+        LOG_INFO("\t=> %.4f Mbps",
                         static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
 }
 
