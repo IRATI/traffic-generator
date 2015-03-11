@@ -168,7 +168,7 @@ void Server::startReceive(Flow * flow)
                                 LOG_INFO("%llu SDUs in %lu ms => %.4f Mbps",
                                                 totalSdus, ms,
                                                 static_cast<float>(
-                                                        (totalBytes * 8.0) /
+                                                        (totalSdus * sduSize * 8.0) /
                                                         (ms * 1000)));
 
                                 clock_gettime(CLOCK_REALTIME, &tmp);
