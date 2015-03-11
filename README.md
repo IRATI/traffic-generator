@@ -1,5 +1,5 @@
 This source code was developed by members of the IRINA consortium, funded by
-the GN3+ IRINA project.
+the EC through the GN3+ Open Calls project "IRINA".
 
 The contributing members of the project are (alphabetical order):
 
