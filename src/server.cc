@@ -156,7 +156,7 @@ void Server::startReceive(Flow * flow)
                         if (interval && totalSdus % interval == 0) {
                                 clock_gettime(CLOCK_REALTIME, &end);
                                 ms = msElapsed(tmp, end);
-                                LOG_INFO("%llu SDUs in %lu ms => %.4f Mbps",
+                                LOG_INFO("%llu SDUs in %lu ms => %.4f Mb/s",
                                                 totalSdus-totalSdusInterval, ms,
                                                 static_cast<float>(
                                                         ((totalSdus -totalSdusInterval)
@@ -181,7 +181,7 @@ void Server::startReceive(Flow * flow)
                 flow->writeSDU(statistics, sizeof(statistics));
 
                 LOG_INFO("Result: %llu SDUs, %llu bytes in %lu ms", totalSdus, totalBytes, ms);
-                LOG_INFO("\t=> %.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
+                LOG_INFO("\t=> %.4f Mb/s", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
         } catch (IPCException& ex) {
                 timer_delete(timerId);
         }

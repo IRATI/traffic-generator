@@ -2,7 +2,9 @@
  * Traffic generator
  *
  *   Addy Bombeke <addy.bombeke@ugent.be>
+ *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
  *   Douwe De Bock <douwe.debock@ugent.be>
+ *   Sander Vrijders <sander.vrijders@intec.ugent.be>
  *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
@@ -156,7 +158,7 @@ void Client::constantBitRate(Flow * flow)
         unsigned int ms = msElapsed(start, end);
         LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u ms",
                         seq, seq * sduSize, ms);
-        LOG_INFO("\t=> %.4f Mbps!",
+        LOG_INFO("\t=> %.4f Mb/s",
                         static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
 }
 
@@ -205,7 +207,7 @@ void Client::poissonDistribution(Flow * flow)
         unsigned int ms = msElapsed(start, end);
         LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u ms",
                         seq, seq * sduSize, ms);
-        LOG_INFO("\t=> %.4f Mbps!",
+        LOG_INFO("\t=> %.4f Mb/s",
                         static_cast<float>((seq*sduSize * 8.0)/(ms*1000)));
 }
 
@@ -226,7 +228,7 @@ void Client::receiveServerStats(Flow * flow)
 
         LOG_INFO("Server result: %llu SDUs, %llu bytes in %lu ms",
                         sduCount, totalBytes, ms);
-        LOG_INFO("\t=> %.4f Mbps",
+        LOG_INFO("\t=> %.4f Mb/s",
                         static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
 }
 
