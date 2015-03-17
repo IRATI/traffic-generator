@@ -150,7 +150,10 @@ void Client::constantBitRate(Flow * flow)
 		}
 		const struct timespec interval = {seconds, nanos};
 		addtime (&start, &interval, &deadline);
-		busyWaitUntil(deadline);
+		if (busy)
+		        busyWaitUntil(deadline);
+		else
+		        sleepUntil(deadline);
                 seq++;
 		clock_gettime(CLOCK_REALTIME, &end);
                 if (duration != 0 && usElapsed(start, end)/MILLION >= duration)
@@ -196,7 +199,10 @@ void Client::poissonDistribution(Flow * flow)
 		long nanos = rvt()*10000;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		addtime(&next,&interval,&next);
-		busyWaitUntil(next);
+		if (busy)
+		        busyWaitUntil(next);
+		else
+		        sleepUntil(next);
                 seq++;
                 clock_gettime(CLOCK_REALTIME, &end);
                 if (duration != 0 && usElapsed(start, end)/MILLION >= duration)
@@ -234,17 +240,6 @@ void Client::receiveServerStats(Flow * flow)
                         static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
 }
 
-void Client::busyWait(struct timespec &start, double deadline)
-{
-        struct timespec now;
-        clock_gettime(CLOCK_REALTIME, &now);
-
-        while (deadline > (((now.tv_sec - start.tv_sec) * 1000000
-                                        - (now.tv_nsec - start.tv_nsec) / 1000)
-                                / 1000))
-                clock_gettime(CLOCK_REALTIME, &now);
-}
-
 /* if deadline is in the past, this function will just return */
 void Client::busyWaitUntil(const struct timespec &deadline)
 {
@@ -256,10 +251,15 @@ void Client::busyWaitUntil(const struct timespec &deadline)
 		clock_gettime(CLOCK_REALTIME, &now);
 }
 
-// void Client::sleepUntil(const struct timespec &deadline)
-//{
-//        /* TODO: use sleep for longer waits to avoid burning the CPU */
-//}
+void Client::sleepUntil(const struct timespec &deadline)
+{
+        /* TODO: use sleep for longer waits to avoid burning the CPU */
+        struct timespec now;
+	struct timespec diff;
+        clock_gettime(CLOCK_REALTIME, &now);
+	subtime(&deadline,&now,&diff);
+	nanosleep (&diff, NULL);	        
+}
 
 void Client::destroyFlow(Flow * flow)
 {

@@ -23,6 +23,7 @@
 
 static bool listen;
 static bool registration;
+static bool busy;
 static unsigned long long count;
 static unsigned int size;
 static unsigned int rate;
@@ -119,8 +120,12 @@ void parseArgs(int argc, char *argv[])
                                 "report statistics every x SDUs",
                                 false,
                                 100000000,
-                                "unsigned integer");
-
+				"unsigned integer");
+		TCLAP::SwitchArg sleepArg("",
+                                "sleep",
+                                "sleep instead of busywait between sending SDUs",
+                                false);
+		
                 cmd.add(listenArg);
                 cmd.add(countArg);
                 cmd.add(registrationArg);
@@ -135,6 +140,7 @@ void parseArgs(int argc, char *argv[])
                 cmd.add(qoscubeArg);
                 cmd.add(distributionArg);
                 cmd.add(intervalArg);
+		cmd.add(sleepArg);
 
                 cmd.parse(argc, argv);
 
@@ -152,7 +158,7 @@ void parseArgs(int argc, char *argv[])
                 qoscube = qoscubeArg.getValue();
                 distributionType = distributionArg.getValue();
                 interval = intervalArg.getValue();
-
+		busy = !sleepArg.getValue();
                 if (size > Application::maxBufferSize) {
                         size = Application::maxBufferSize;
                         LOG_INFO("Packet size truncated to %u", size);
@@ -183,8 +189,8 @@ int main(int argc, char * argv[])
                 } else {
                         // Client mode
                         Client c(difName, clientApn, clientApi, serverApn,
-                                        serverApi, registration, distributionType,
-                                        size, count, duration, rate, qoscube);
+                                 serverApi, registration, distributionType,
+				 size, count, duration, rate, qoscube, busy);
 
                         c.run();
                 }

@@ -28,7 +28,8 @@ class Client: public Application {
                                 unsigned long long count_,
                                 unsigned int duration_,
                                 unsigned int rate_,
-                                const std::string& qoscube_) :
+		                const std::string& qoscube_,
+		                bool busy_) :
                         Application(difName_, apn, api),
                         difName(difName_),
                         serverName(serverApn),
@@ -39,9 +40,11 @@ class Client: public Application {
                         count(count_),
                         duration(duration_),
                         rate(rate_),
-                        qoscube(qoscube_) {
+			qoscube(qoscube_),
+			busy(busy_) {
                                 if (!duration == !count)
-                                        throw rina::IPCException("not a valid count and duration combination!");
+                                        throw rina::IPCException(
+					"not a valid count and duration combination!");
                         }
 
                 void run();
@@ -64,9 +67,10 @@ class Client: public Application {
                 unsigned int duration;
                 unsigned int rate;
                 std::string qoscube;
+                bool busy;
 
-                void busyWait(struct timespec &start, double deadline);
-		void busyWaitUntil (const struct timespec &deadline);
+                void busyWaitUntil (const struct timespec &deadline);
+		void sleepUntil(const struct timespec &deadline);
                 unsigned int secondsElapsed(struct timespec &start);
 };
 #endif//CLIENT_HPP
