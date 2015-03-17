@@ -155,13 +155,13 @@ void Server::startReceive(Flow * flow)
                         }
                         if (interval && totalSdus % interval == 0) {
                                 clock_gettime(CLOCK_REALTIME, &end);
-                                ms = msElapsed(tmp, end);
-                                LOG_INFO("%llu SDUs in %lu ms => %.4f Mb/s",
-                                                totalSdus-totalSdusInterval, ms,
+                                int us = usElapsed(tmp, end);
+				LOG_INFO("%llu SDUs in %lu us => %.4f Mb/s",
+                                                totalSdus-totalSdusInterval, us,
                                                 static_cast<float>(
                                                         ((totalSdus -totalSdusInterval)
 							 * sduSize * 8.0) /
-                                                        (ms * 1000)));
+                                                        (us)));
 
                                 clock_gettime(CLOCK_REALTIME, &tmp);
 				totalSdusInterval = totalSdus;
