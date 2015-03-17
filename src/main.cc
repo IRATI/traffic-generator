@@ -2,7 +2,7 @@
  * Traffic generator main
  *
  *   Douwe De Bock <douwe.debock@ugent.be>
- * 
+ *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
  */
@@ -80,7 +80,7 @@ void parseArgs(int argc, char *argv[])
                                 false);
                 TCLAP::ValueArg<unsigned int> sizeArg("s",
                                 "size",
-                                "Size of the SDUs to send",
+                                "Size of the SDUs to send (bytes)",
                                 false,
                                 500,
                                 "unsigned integer");
@@ -92,13 +92,13 @@ void parseArgs(int argc, char *argv[])
                                 "unsigned integer");
                 TCLAP::ValueArg<unsigned int> durationArg("",
                                 "duration",
-                                "Duration in seconds of the test, 0 = unlimited",
+                                "Duration of the test (seconds), 0 = unlimited",
                                 false,
                                 60,
                                 "unsigned integer");
                 TCLAP::ValueArg<unsigned int> rateArg("",
                                 "rate",
-                                "Bitrate to send the SDUs, in Kbps, 0 = no limit",
+                                "Bitrate to send the SDUs, in kb/s, 0 = no limit",
                                 false,
                                 0,
                                 "unsigned integer");

@@ -1,9 +1,10 @@
 /*
  * Traffic generator
- * 
+ *
  *   Addy Bombeke <addy.bombeke@ugent.be>
+ *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
  *   Douwe De Bock <douwe.debock@ugent.be>
- * 
+ *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
  */
@@ -41,12 +42,12 @@ void Server::run()
 
                         case REGISTER_APPLICATION_RESPONSE_EVENT:
                                 ipcManager->commitPendingRegistration(event->sequenceNumber,
-                                                dynamic_cast<RegisterApplicationResponseEvent*>(event)->DIFName);
+                                        dynamic_cast<RegisterApplicationResponseEvent*>(event)->DIFName);
                                 break;
 
                         case UNREGISTER_APPLICATION_RESPONSE_EVENT:
                                 ipcManager->appUnregistrationResult(event->sequenceNumber,
-                                                dynamic_cast<UnregisterApplicationResponseEvent*>(event)->result == 0);
+                                        dynamic_cast<UnregisterApplicationResponseEvent*>(event)->result == 0);
                                 break;
 
                         case FLOW_ALLOCATION_REQUESTED_EVENT:
@@ -75,8 +76,8 @@ void Server::run()
 void Server::startReceive(Flow * flow)
 {
         unsigned long long count;
-        unsigned int duration;
-        unsigned int sduSize;
+        unsigned int       duration;
+        unsigned int       sduSize;
 
         char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize)];
 
@@ -139,12 +140,13 @@ void Server::startReceive(Flow * flow)
 
         unsigned long long totalSdus = 1;
         unsigned long long totalBytes = 0;
+	unsigned long long totalSdusInterval=0;
         unsigned int ms;
         try {
                 clock_gettime(CLOCK_REALTIME, &start);
                 clock_gettime(CLOCK_REALTIME, &tmp);
                 while (running) {
-                        totalBytes += flow->readSDU(data, sduSize);
+			totalBytes += flow->readSDU(data, sduSize);
                         totalSdus++;
 
                         if (!timeTest) {
@@ -153,14 +155,16 @@ void Server::startReceive(Flow * flow)
                         }
                         if (interval && totalSdus % interval == 0) {
                                 clock_gettime(CLOCK_REALTIME, &end);
-                                ms = msElapsed(tmp, end);
-                                LOG_INFO("%llu SDUs in %lu ms => %.4f Mbps",
-                                                totalSdus, ms,
+                                int us = usElapsed(tmp, end);
+				LOG_INFO("%llu SDUs in %lu us => %.4f Mb/s",
+                                                totalSdus-totalSdusInterval, us,
                                                 static_cast<float>(
-                                                        (totalSdus * sduSize * 8.0) /
-                                                        (ms * 1000)));
+                                                        ((totalSdus -totalSdusInterval)
+							 * sduSize * 8.0) /
+                                                        (us)));
 
                                 clock_gettime(CLOCK_REALTIME, &tmp);
+				totalSdusInterval = totalSdus;
                         }
                 }
                 clock_gettime(CLOCK_REALTIME, &end);
@@ -173,11 +177,11 @@ void Server::startReceive(Flow * flow)
                 memcpy(statistics, &ncount, sizeof(ncount));
                 memcpy(&statistics[sizeof(ncount)], &nbytes, sizeof(nbytes));
                 memcpy(&statistics[sizeof(ncount) + sizeof(nbytes)], &nms, sizeof(nms));
-                
+
                 flow->writeSDU(statistics, sizeof(statistics));
 
                 LOG_INFO("Result: %llu SDUs, %llu bytes in %lu ms", totalSdus, totalBytes, ms);
-                LOG_INFO("\t=> %.4f Mbps", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
+                LOG_INFO("\t=> %.4f Mb/s", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
         } catch (IPCException& ex) {
                 timer_delete(timerId);
         }

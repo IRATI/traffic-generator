@@ -66,6 +66,7 @@ class Client: public Application {
                 std::string qoscube;
 
                 void busyWait(struct timespec &start, double deadline);
+		void busyWaitUntil (const struct timespec &deadline);
                 unsigned int secondsElapsed(struct timespec &start);
 };
 #endif//CLIENT_HPP
