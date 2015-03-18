@@ -187,16 +187,16 @@ void Client::poissonDistribution(Flow * flow)
 
         boost::mt19937 gen;
         gen.seed(time(NULL));
-        boost::poisson_distribution<long> pdist((long)(intervalTime*100));
+        boost::poisson_distribution<int> pdist(poissonmean);
         boost::variate_generator<boost::mt19937,
-                boost::poisson_distribution<long> > rvt(gen, pdist);
+                boost::poisson_distribution<int> > rvt(gen, pdist);
 
         clock_gettime(CLOCK_REALTIME, &start);
 	struct timespec next = start;
         while (!stop) {
                 memcpy(toSend, &seq, sizeof(seq));
                 flow->writeSDU(toSend, sduSize);
-		long nanos = rvt()*10000;
+		long nanos = rvt()*MILLION/poissonmean*intervalTime;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		addtime(&next,&interval,&next);
 		if (busy)

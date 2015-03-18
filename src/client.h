@@ -29,7 +29,8 @@ class Client: public Application {
                                 unsigned int duration_,
                                 unsigned int rate_,
 		                const std::string& qoscube_,
-		                bool busy_) :
+		                bool busy_,
+		                double poissonmean_) :
                         Application(difName_, apn, api),
                         difName(difName_),
                         serverName(serverApn),
@@ -41,7 +42,8 @@ class Client: public Application {
                         duration(duration_),
                         rate(rate_),
 			qoscube(qoscube_),
-			busy(busy_) {
+			busy(busy_),
+			poissonmean(poissonmean_) {
                                 if (!duration == !count)
                                         throw rina::IPCException(
 					"not a valid count and duration combination!");
@@ -68,6 +70,7 @@ class Client: public Application {
                 unsigned int rate;
                 std::string qoscube;
                 bool busy;
+		double poissonmean;
 
                 void busyWaitUntil (const struct timespec &deadline);
 		void sleepUntil(const struct timespec &deadline);

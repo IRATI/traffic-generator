@@ -36,6 +36,7 @@ static std::string clientApi;
 static std::string difName;
 static std::string distributionType;
 static std::string qoscube;
+static double poissonmean;
 
 void parseArgs(int argc, char *argv[])
 {
@@ -115,6 +116,12 @@ void parseArgs(int argc, char *argv[])
                                 false,
                                 "CBR",
                                 "string");
+		TCLAP::ValueArg<double> poissonMeanArg("",
+                                "poissonmean",
+                                "a mean value for the poisson distribution.",
+                                false,
+                                0.001,
+                                "double");
                 TCLAP::ValueArg<unsigned int> intervalArg("",
                                 "interval",
                                 "report statistics every x SDUs",
@@ -141,6 +148,7 @@ void parseArgs(int argc, char *argv[])
                 cmd.add(distributionArg);
                 cmd.add(intervalArg);
 		cmd.add(sleepArg);
+		cmd.add(poissonMeanArg);
 
                 cmd.parse(argc, argv);
 
@@ -159,6 +167,7 @@ void parseArgs(int argc, char *argv[])
                 distributionType = distributionArg.getValue();
                 interval = intervalArg.getValue();
 		busy = !sleepArg.getValue();
+		poissonmean = poissonMeanArg.getValue();
                 if (size > Application::maxBufferSize) {
                         size = Application::maxBufferSize;
                         LOG_INFO("Packet size truncated to %u", size);
@@ -190,7 +199,7 @@ int main(int argc, char * argv[])
                         // Client mode
                         Client c(difName, clientApn, clientApi, serverApn,
                                  serverApi, registration, distributionType,
-				 size, count, duration, rate, qoscube, busy);
+				 size, count, duration, rate, qoscube, busy, poissonmean);
 
                         c.run();
                 }
