@@ -1,6 +1,7 @@
 /*
  * Traffic generator main
  *
+ *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
  *   Douwe De Bock <douwe.debock@ugent.be>
  *
  * This source code has been released under the GEANT outward license.
@@ -118,13 +119,15 @@ void parseArgs(int argc, char *argv[])
                                 "string");
 		TCLAP::ValueArg<double> poissonMeanArg("",
                                 "poissonmean",
-                                "a mean value for the poisson distribution.",
+                                "The mean value for the poisson distribution "
+				"used to generate interarrival times, "
+                                "default is 1.",
                                 false,
-                                0.001,
+                                1,
                                 "double");
                 TCLAP::ValueArg<unsigned int> intervalArg("",
                                 "interval",
-                                "report statistics every x SDUs",
+                                "report statistics every x SDUs (server)",
                                 false,
                                 100000000,
 				"unsigned integer");
@@ -132,23 +135,23 @@ void parseArgs(int argc, char *argv[])
                                 "sleep",
                                 "sleep instead of busywait between sending SDUs",
                                 false);
-		
-                cmd.add(listenArg);
-                cmd.add(countArg);
+
+		cmd.add(sleepArg);
                 cmd.add(registrationArg);
-                cmd.add(sizeArg);
                 cmd.add(serverApnArg);
                 cmd.add(serverApiArg);
                 cmd.add(clientApnArg);
                 cmd.add(clientApiArg);
                 cmd.add(difArg);
+                cmd.add(qoscubeArg);
+		cmd.add(poissonMeanArg);
+                cmd.add(distributionArg);
+                cmd.add(sizeArg);
                 cmd.add(rateArg);
                 cmd.add(durationArg);
-                cmd.add(qoscubeArg);
-                cmd.add(distributionArg);
+                cmd.add(countArg);
                 cmd.add(intervalArg);
-		cmd.add(sleepArg);
-		cmd.add(poissonMeanArg);
+                cmd.add(listenArg);
 
                 cmd.parse(argc, argv);
 
