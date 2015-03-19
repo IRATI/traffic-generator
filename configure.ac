@@ -4,11 +4,11 @@
 # Written by: Francesco Salvestrini <f DOT salvestrini AT nextworks DOT it>
 #
 
-AC_INIT([RINA raffig Generator],
+AC_INIT([RINA Traffic Generator],
         m4_esyscmd([build-aux/git-version-gen .tarball-version]),
-        [f.salvestrini@nextworks.it],
+        [dimitri.staessens@intec.ugent.be],
         [rina-tgen],
-        [http://irati.eu])
+        [http://github.com/irati/traffic-generator])
 
 AC_PREREQ([2.68])
 
