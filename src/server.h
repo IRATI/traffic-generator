@@ -27,7 +27,7 @@ public:
                        Application(difName, appName, appInstance),
                        interval(interval_) {}
 
-	       void run();
+                void run();
 
 protected:
 

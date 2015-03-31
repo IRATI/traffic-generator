@@ -51,29 +51,29 @@ public:
         void run();
 
 protected:
-       rina::Flow * createFlow();
-       void setup(rina::Flow * flow);
-       void constantBitRate(rina::Flow * flow);
-       void poissonDistribution(rina::Flow * flow);
-       void receiveServerStats(rina::Flow * flow);
-       void destroyFlow(rina::Flow * flow);
+        rina::Flow * createFlow();
+        void setup(rina::Flow * flow);
+        void constantBitRate(rina::Flow * flow);
+        void poissonDistribution(rina::Flow * flow);
+        void receiveServerStats(rina::Flow * flow);
+        void destroyFlow(rina::Flow * flow);
 
 private:
-       std::string difName;
-       std::string serverName;
-       std::string serverInstance;
-       bool registerClient;
-       std::string distributionType;
-       unsigned int sduSize;
-       unsigned long long count;
-       unsigned int duration;
-       unsigned int rate;
-       std::string qoscube;
-       bool busy;
-       double poissonmean;
+        std::string difName;
+        std::string serverName;
+        std::string serverInstance;
+        bool registerClient;
+        std::string distributionType;
+        unsigned int sduSize;
+        unsigned long long count;
+        unsigned int duration;
+        unsigned int rate;
+        std::string qoscube;
+        bool busy;
+        double poissonmean;
 
-       void busyWaitUntil (const struct timespec &deadline);
-       void sleepUntil(const struct timespec &deadline);
-       unsigned int secondsElapsed(struct timespec &start);
+        void busyWaitUntil (const struct timespec &deadline);
+        void sleepUntil(const struct timespec &deadline);
+        unsigned int secondsElapsed(struct timespec &start);
 };
 #endif//CLIENT_HPP
