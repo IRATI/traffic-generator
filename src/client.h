@@ -16,21 +16,21 @@
 #include "application.h"
 
 class Client: public Application {
-        public:
-                Client(const std::string& difName_,
-                                const std::string& apn,
-                                const std::string& api,
-                                const std::string& serverApn,
-                                const std::string& serverApi,
-                                bool registration,
-                                const std::string& distributionType_,
-                                unsigned int size_,
-                                unsigned long long count_,
-                                unsigned int duration_,
-                                unsigned int rate_,
-		                const std::string& qoscube_,
-		                bool busy_,
-		                double poissonmean_) :
+public:
+        Client(const std::string& difName_,
+               const std::string& apn,
+               const std::string& api,
+               const std::string& serverApn,
+               const std::string& serverApi,
+               bool registration,
+               const std::string& distributionType_,
+               unsigned int size_,
+               unsigned long long count_,
+               unsigned int duration_,
+               unsigned int rate_,
+               const std::string& qoscube_,
+	       bool busy_,
+	       double poissonmean_) :
                         Application(difName_, apn, api),
                         difName(difName_),
                         serverName(serverApn),
@@ -48,32 +48,32 @@ class Client: public Application {
                                         throw rina::IPCException(
 					"not a valid count and duration combination!");
                         }
+        void run();
 
-                void run();
-        protected:
-                rina::Flow * createFlow();
-                void setup(rina::Flow * flow);
-                void constantBitRate(rina::Flow * flow);
-                void poissonDistribution(rina::Flow * flow);
-                void receiveServerStats(rina::Flow * flow);
-                void destroyFlow(rina::Flow * flow);
+protected:
+       rina::Flow * createFlow();
+       void setup(rina::Flow * flow);
+       void constantBitRate(rina::Flow * flow);
+       void poissonDistribution(rina::Flow * flow);
+       void receiveServerStats(rina::Flow * flow);
+       void destroyFlow(rina::Flow * flow);
 
-        private:
-                std::string difName;
-                std::string serverName;
-                std::string serverInstance;
-                bool registerClient;
-                std::string distributionType;
-                unsigned int sduSize;
-                unsigned long long count;
-                unsigned int duration;
-                unsigned int rate;
-                std::string qoscube;
-                bool busy;
-		double poissonmean;
+private:
+       std::string difName;
+       std::string serverName;
+       std::string serverInstance;
+       bool registerClient;
+       std::string distributionType;
+       unsigned int sduSize;
+       unsigned long long count;
+       unsigned int duration;
+       unsigned int rate;
+       std::string qoscube;
+       bool busy;
+       double poissonmean;
 
-                void busyWaitUntil (const struct timespec &deadline);
-		void sleepUntil(const struct timespec &deadline);
-                unsigned int secondsElapsed(struct timespec &start);
+       void busyWaitUntil (const struct timespec &deadline);
+       void sleepUntil(const struct timespec &deadline);
+       unsigned int secondsElapsed(struct timespec &start);
 };
 #endif//CLIENT_HPP

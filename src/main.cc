@@ -22,25 +22,25 @@
 #include "client.h"
 #include "server.h"
 
-static bool listen;
-static bool registration;
-static bool busy;
-static unsigned long long count;
-static unsigned int size;
-static unsigned int rate;
-static unsigned int duration;
-static unsigned int interval;
-static std::string serverApn;
-static std::string serverApi;
-static std::string clientApn;
-static std::string clientApi;
-static std::string difName;
-static std::string distributionType;
-static std::string qoscube;
-static double poissonmean;
-
-void parseArgs(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
+        static bool listen;
+        static bool registration;
+        static bool busy;
+        static unsigned long long count;
+        static unsigned int size;
+        static unsigned int rate;
+        static unsigned int duration;
+        static unsigned int interval;
+        static std::string serverApn;
+        static std::string serverApi;
+        static std::string clientApn;
+        static std::string clientApi;
+        static std::string difName;
+        static std::string distributionType;
+        static std::string qoscube;
+        static double poissonmean;
+
         try {
                 TCLAP::CmdLine cmd("traffic-generator", ' ', PACKAGE_VERSION);
                 TCLAP::SwitchArg listenArg("l",
@@ -182,13 +182,6 @@ void parseArgs(int argc, char *argv[])
                                 e.argId().c_str());
                 exit(1);
         }
-
-}
-
-int main(int argc, char * argv[])
-{
-
-        parseArgs(argc, argv);
 
         try {
                 rina::initialize("INFO", "");

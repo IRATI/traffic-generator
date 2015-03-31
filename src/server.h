@@ -19,22 +19,22 @@
 
 class Server: public Application
 {
-        public:
-                Server(const std::string& difName,
-                                const std::string& appName,
-                                const std::string& appInstance,
-                                unsigned int interval_) :
-                        Application(difName, appName, appInstance),
-                        interval(interval_) {}
+public:
+        Server(const std::string& difName,
+               const std::string& appName,
+               const std::string& appInstance,
+               unsigned int interval_) :
+                       Application(difName, appName, appInstance),
+                       interval(interval_) {}
 
-                void run();
+	       void run();
 
-        protected:
+protected:
 
-        private:
-                void startReceive(rina::Flow * flow);
-                static void timesUp(sigval_t val);
-                unsigned int interval;
+private:
+        void startReceive(rina::Flow * flow);
+        static void timesUp(sigval_t val);
+        unsigned int interval;
 };
 
 #endif

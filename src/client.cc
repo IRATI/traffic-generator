@@ -57,14 +57,14 @@ Flow * Client::createFlow()
         IPCEvent * event;
         unsigned int seqnum;
 
-        if (!std::string("reliable").compare(qoscube))
+	if (!std::string("reliable").compare(qoscube))
                 qosspec.maxAllowableGap = 0;
-        if (!std::string("unreliable").compare(qoscube))
-                qosspec.maxAllowableGap = 1;
-        else
+	else if (!std::string("unreliable").compare(qoscube))
+		qosspec.maxAllowableGap = -1;
+	else
 		throw IPCException("not a valid qoscube");
 
-        if (difName != string()) {
+	if (difName != string()) {
                 seqnum = ipcManager->requestFlowAllocationInDIF(
                                 ApplicationProcessNamingInformation(appName, appInstance),
                                 ApplicationProcessNamingInformation(serverName, serverInstance),
@@ -76,8 +76,7 @@ Flow * Client::createFlow()
                                 ApplicationProcessNamingInformation(serverName, serverInstance),
                                 qosspec);
         }
-
-        for (;;) {
+	for (;;) {
                 event = ipcEventProducer->eventWait();
                 if (event && event->eventType == ALLOCATE_FLOW_REQUEST_RESULT_EVENT
                                 && event->sequenceNumber == seqnum) {
@@ -86,7 +85,7 @@ Flow * Client::createFlow()
                 LOG_DBG("Client got new event %d", event->eventType);
         }
 
-        afrrevent = dynamic_cast<AllocateFlowRequestResultEvent*>(event);
+	afrrevent = dynamic_cast<AllocateFlowRequestResultEvent*>(event);
 
         flow = ipcManager->commitPendingFlow(afrrevent->sequenceNumber,
                         afrrevent->portId,
