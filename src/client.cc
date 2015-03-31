@@ -76,6 +76,7 @@ Flow * Client::createFlow()
                                 ApplicationProcessNamingInformation(serverName, serverInstance),
                                 qosspec);
         }
+
 	for (;;) {
                 event = ipcEventProducer->eventWait();
                 if (event && event->eventType == ALLOCATE_FLOW_REQUEST_RESULT_EVENT
