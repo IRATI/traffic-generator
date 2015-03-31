@@ -51,20 +51,20 @@ void Client::run()
 
 Flow * Client::createFlow()
 {
-	Flow * flow = 0;
+        Flow * flow = 0;
         AllocateFlowRequestResultEvent * afrrevent;
         FlowSpecification qosspec;
         IPCEvent * event;
         unsigned int seqnum;
 
-	if (!std::string("reliable").compare(qoscube))
-		qosspec.maxAllowableGap = 0;
+        if (!std::string("reliable").compare(qoscube))
+                qosspec.maxAllowableGap = 0;
         if (!std::string("unreliable").compare(qoscube))
                 qosspec.maxAllowableGap = 1;
-	else
+        else
 		throw IPCException("not a valid qoscube");
 
-	if (difName != string()) {
+        if (difName != string()) {
                 seqnum = ipcManager->requestFlowAllocationInDIF(
                                 ApplicationProcessNamingInformation(appName, appInstance),
                                 ApplicationProcessNamingInformation(serverName, serverInstance),
@@ -102,11 +102,11 @@ Flow * Client::createFlow()
 
 void Client::setup(Flow * flow)
 {
-	//TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
-	//when using the shim DIF over Ethernet directly
-	char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32];
+        //TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
+        //when using the shim DIF over Ethernet directly
+        char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32];
 
-	unsigned long long ncount = htobe64(count);
+        unsigned long long ncount = htobe64(count);
         unsigned int ndur = htobe32(duration);
         unsigned int nsize = htobe32(sduSize);
 
