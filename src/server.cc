@@ -32,8 +32,7 @@ void Server::run()
 
         for(;;) {
                 IPCEvent * event = ipcEventProducer->eventWait();
-                Flow * flow = 0;
-                unsigned int port_id;
+                int port_id;
 
                 if (!event)
                         return;
@@ -52,9 +51,9 @@ void Server::run()
 
                         case FLOW_ALLOCATION_REQUESTED_EVENT:
                                 {
-                                        flow = ipcManager->allocateFlowResponse(*dynamic_cast<FlowRequestEvent*>(event), 0, true);
-                                        LOG_INFO("New flow allocated [port-id = %d]", flow->getPortId());
-                                        boost::thread t(&Server::startReceive, this, flow);
+                                        rina::FlowInformation flow = ipcManager->allocateFlowResponse(*dynamic_cast<FlowRequestEvent*>(event), 0, true);
+                                        LOG_INFO("New flow allocated [port-id = %d]", flow.portId);
+                                        boost::thread t(&Server::startReceive, this, flow.portId);
                                         t.detach();
 
                                         break;
@@ -73,15 +72,15 @@ void Server::run()
         }
 }
 
-void Server::startReceive(Flow * flow)
+void Server::startReceive(int port_id)
 {
         unsigned long long count;
         unsigned int       duration;
         unsigned int       sduSize;
 
         char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32];
-
-        flow->readSDU(initData, sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32);
+        
+        ipcManager->readSDU(port_id,initData, sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32);
 
         memcpy(&count, initData, sizeof(count));
         memcpy(&duration, &initData[sizeof(count)], sizeof(duration));
@@ -98,45 +97,13 @@ void Server::startReceive(Flow * flow)
         LOG_INFO("Starting test:\n\tduration: %u\n\tcount: %llu\n\tsduSize: %u", duration, count, sduSize);
 
         clock_gettime(CLOCK_REALTIME, &start);
-        flow->writeSDU(response, sizeof(response));
+        ipcManager->writeSDU(port_id,response, sizeof(response));
 
         int running = true;
         char data[sduSize];
 
-        flow->readSDU(data, sduSize);
-        //clock_gettime(CLOCK_REALTIME, &end);
-
-        /*
-           double timeout = 4000 * (((end.tv_sec - start.tv_sec) * 1000000
-           - (end.tv_nsec - start.tv_nsec) / 1000));
-           struct itimerspec itimer;
-           itimer.it_interval.tv_sec = 0;
-           itimer.it_interval.tv_nsec = 0;
-           itimer.it_value.tv_sec = timeout / 1000000000;
-           itimer.it_value.tv_nsec = timeout % 1000000000;
-           */
-        bool timeTest;
-        timer_t timerId;
-        if (duration) {
-                timeTest = true;
-                struct sigevent event;
-                struct itimerspec durationTimer;
-
-                memset(&event, 0, sizeof(event));
-                event.sigev_notify = SIGEV_THREAD;
-                event.sigev_value.sival_ptr = &running;
-                event.sigev_notify_function = &timesUp;
-
-                timer_create(CLOCK_REALTIME, &event, &timerId);
-
-                durationTimer.it_interval.tv_sec = 0;
-                durationTimer.it_interval.tv_nsec = 0;
-                durationTimer.it_value.tv_sec = duration;
-                durationTimer.it_value.tv_nsec = 0;
-
-                timer_settime(timerId, 0, &durationTimer, NULL);
-        } else
-                timeTest = false;
+        ipcManager->readSDU(port_id, data, sduSize);
+        bool timeTest = (duration > 0);
 
         unsigned long long totalSdus = 1;
         unsigned long long totalBytes = 0;
@@ -146,13 +113,13 @@ void Server::startReceive(Flow * flow)
                 clock_gettime(CLOCK_REALTIME, &start);
                 clock_gettime(CLOCK_REALTIME, &tmp);
                 while (running) {
-			totalBytes += flow->readSDU(data, sduSize);
+			totalBytes += ipcManager->readSDU(port_id, data, sduSize);
                         totalSdus++;
 
-                        if (!timeTest) {
-                                if (totalSdus >= count)
-                                        running = 0;
-                        }
+                        if (!timeTest && totalSdus >= count)
+                                running = 0;
+                        if (timeTest && (msElapsed(start,tmp) > ((duration+1) * 1000 )))
+			        running = 0; 
                         if (interval && totalSdus % interval == 0) {
                                 clock_gettime(CLOCK_REALTIME, &end);
                                 int us = usElapsed(tmp, end);
@@ -169,27 +136,27 @@ void Server::startReceive(Flow * flow)
                 }
                 clock_gettime(CLOCK_REALTIME, &end);
                 ms = msElapsed(start, end);
+                /* FIXME: removed until we have non-blocking readSDU()
                 unsigned int nms = htobe32(ms);
                 unsigned long long ncount = htobe64(totalSdus);
                 unsigned long long nbytes = htobe64(totalBytes);
 
-                char statistics[sizeof(ncount) + sizeof(nbytes) + sizeof(nms)];
+                char statistics[sizeof(ncount) + sizeof(nbytes) + sizeof(nms) + 64];
                 memcpy(statistics, &ncount, sizeof(ncount));
                 memcpy(&statistics[sizeof(ncount)], &nbytes, sizeof(nbytes));
                 memcpy(&statistics[sizeof(ncount) + sizeof(nbytes)], &nms, sizeof(nms));
 
-                flow->writeSDU(statistics, sizeof(statistics));
+                ipcManager->writeSDU(port_id, statistics, sizeof(statistics) + 64);
+                */
 
                 LOG_INFO("Result: %llu SDUs, %llu bytes in %lu ms", totalSdus, totalBytes, ms);
                 LOG_INFO("\t=> %.4f Mb/s", static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
-        } catch (IPCException& ex) {
-                timer_delete(timerId);
-        }
+        } catch (IPCException& ex) { 
+	}
 }
 
 void Server::timesUp(sigval_t val)
 {
         int *running = (int *)val.sival_ptr;
-
         *running = 0;
 }

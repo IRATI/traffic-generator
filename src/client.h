@@ -1,7 +1,9 @@
 /*
  * Traffic generator
  *
+ *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
  *   Douwe De Bock <douwe.debock@ugent.be>
+ *   Sander Vrijders <sander.vrijders@intec.ugent.be>
  *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
@@ -51,12 +53,12 @@ public:
         void run();
 
 protected:
-        rina::Flow * createFlow();
-        void setup(rina::Flow * flow);
-        void constantBitRate(rina::Flow * flow);
-        void poissonDistribution(rina::Flow * flow);
-        void receiveServerStats(rina::Flow * flow);
-        void destroyFlow(rina::Flow * flow);
+        int createFlow();
+        void setup(int port_id);
+        void constantBitRate(int port_id);
+        void poissonDistribution(int port_id);
+        void receiveServerStats(int port_id);
+        void destroyFlow(int port_id);
 
 private:
         std::string difName;

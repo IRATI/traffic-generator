@@ -31,27 +31,29 @@ using namespace rina;
 
 void Client::run()
 {
-        Flow * flow;
+        int port_id=0;
 
         if (registerClient)
                 applicationRegister();
 
-        flow = createFlow();
-
-        if (flow) {
-                setup(flow);
-                if (!std::string("CBR").compare(distributionType))
-                        constantBitRate(flow);
-                else if (!std::string("poisson").compare(distributionType))
-                        poissonDistribution(flow);
-                receiveServerStats(flow);
-                destroyFlow(flow);
+        if ((port_id = createFlow()) < 0) {
+	        LOG_ERR("Problems creating flow, exiting...");
+                return;
         }
+
+        setup(port_id);
+        if (!std::string("CBR").compare(distributionType))
+                constantBitRate(port_id);
+        else if (!std::string("poisson").compare(distributionType))
+                poissonDistribution(port_id);
+	/* FIXME: removed until we have a non-blocking readSDU ()
+        receiveServerStats(port_id);
+        */
+        destroyFlow(port_id);
 }
 
-Flow * Client::createFlow()
+int Client::createFlow()
 {
-        Flow * flow = 0;
         AllocateFlowRequestResultEvent * afrrevent;
         FlowSpecification qosspec;
         IPCEvent * event;
@@ -88,19 +90,18 @@ Flow * Client::createFlow()
 
         afrrevent = dynamic_cast<AllocateFlowRequestResultEvent*>(event);
 
-        flow = ipcManager->commitPendingFlow(afrrevent->sequenceNumber,
-                        afrrevent->portId,
-                        afrrevent->difName);
-        if (!flow || flow->getPortId() == -1) {
+	rina::FlowInformation flow = ipcManager->commitPendingFlow(afrrevent->sequenceNumber,
+                                                                   afrrevent->portId,
+                                                                   afrrevent->difName);
+        if (flow.portId < 0) {
                 LOG_ERR("Failed to allocate a flow");
                 return 0;
         } else
-                LOG_DBG("Port id = %d", flow->getPortId());
-
-        return flow;
+                LOG_DBG("Port id = %d", flow.portId);
+        return flow.portId;
 }
 
-void Client::setup(Flow * flow)
+void Client::setup(int port_id)
 {
         //TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
         //when using the shim DIF over Ethernet directly
@@ -114,17 +115,16 @@ void Client::setup(Flow * flow)
         memcpy(&initData[sizeof(ncount)], &ndur, sizeof(ndur));
         memcpy(&initData[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
-        flow->writeSDU(initData,
-                        sizeof(count) + sizeof(duration) + sizeof(sduSize)+32);
+        ipcManager->writeSDU(port_id, initData,
+                        sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32);
 
         char response[128];
         response[127] = '\0';
-        flow->readSDU(response, 127);
-
+        ipcManager->readSDU(port_id,response, 127);
         LOG_INFO("starting test");
 }
 
-void Client::constantBitRate(Flow * flow)
+void Client::constantBitRate(int port_id)
 {
         unsigned long long seq = 0;
         struct timespec start;
@@ -142,7 +142,7 @@ void Client::constantBitRate(Flow * flow)
         clock_gettime(CLOCK_REALTIME, &start);
         while (!stop) {
                 memcpy(toSend, &seq, sizeof(seq));
-                flow->writeSDU(toSend, sduSize);
+                ipcManager->writeSDU(port_id, toSend, sduSize);
 		long nanos = seq*intervalTime*MILLION;
 	        int seconds = 0;
 		while (nanos > BILLION) {
@@ -157,10 +157,10 @@ void Client::constantBitRate(Flow * flow)
 		        sleepUntil(deadline);
                 seq++;
 		clock_gettime(CLOCK_REALTIME, &end);
-                if (duration != 0 && usElapsed(start, end)/MILLION >= duration)
+                if (duration && usElapsed(start, end)/MILLION >= duration)
                         stop = 1;
-                if (count != 0 && seq >= count)
-			stop = 1;
+                if (count && seq >= count)
+		  stop = 1;
         }
         clock_gettime(CLOCK_REALTIME, &end);
 
@@ -171,7 +171,7 @@ void Client::constantBitRate(Flow * flow)
                         static_cast<float>((seq*sduSize * 8.0)/(us)));
 }
 
-void Client::poissonDistribution(Flow * flow)
+void Client::poissonDistribution(int port_id)
 {
         unsigned long long seq = 0;
         struct timespec start;
@@ -196,7 +196,7 @@ void Client::poissonDistribution(Flow * flow)
 	struct timespec next = start;
         while (!stop) {
                 memcpy(toSend, &seq, sizeof(seq));
-                flow->writeSDU(toSend, sduSize);
+                ipcManager->writeSDU(port_id, toSend, sduSize);
 		long nanos = rvt()*MILLION/poissonmean*intervalTime;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		addtime(&next,&interval,&next);
@@ -220,14 +220,14 @@ void Client::poissonDistribution(Flow * flow)
                         static_cast<float>((seq*sduSize * 8.0)/us));
 }
 
-void Client::receiveServerStats(Flow * flow)
+void Client::receiveServerStats(int port_id)
 {
-        char response[50];
+        char response[128];
         unsigned long long totalBytes;
         unsigned long long sduCount;
         unsigned int ms;
 
-        flow->readSDU(response, 50);
+        ipcManager->readSDU(port_id, response, 128);
         memcpy(&sduCount, response, sizeof(sduCount));
         memcpy(&totalBytes, &response[sizeof(sduCount)], sizeof(totalBytes));
         memcpy(&ms, &response[sizeof(sduCount) + sizeof(totalBytes)], sizeof(ms));
@@ -262,12 +262,11 @@ void Client::sleepUntil(const struct timespec &deadline)
 	nanosleep (&diff, NULL);
 }
 
-void Client::destroyFlow(Flow * flow)
+void Client::destroyFlow(int port_id)
 {
         DeallocateFlowResponseEvent * resp = 0;
         unsigned int seqNum;
         IPCEvent * event;
-        int port_id = flow->getPortId();
 
         seqNum = ipcManager->requestFlowDeallocation(port_id);
 
