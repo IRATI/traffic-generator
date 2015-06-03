@@ -79,9 +79,9 @@ void Server::startReceive(Flow * flow)
         unsigned int       duration;
         unsigned int       sduSize;
 
-        char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize)];
+        char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32];
 
-        flow->readSDU(initData, sizeof(count) + sizeof(duration) + sizeof(sduSize));
+        flow->readSDU(initData, sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32);
 
         memcpy(&count, initData, sizeof(count));
         memcpy(&duration, &initData[sizeof(count)], sizeof(duration));
@@ -90,7 +90,7 @@ void Server::startReceive(Flow * flow)
         duration = be32toh(duration);
         sduSize = be32toh(sduSize);
 
-        char response[] = "Go ahead!";
+        char response[] = "Go ahead!                                               ";
         struct timespec start;
         struct timespec end;
         struct timespec tmp;

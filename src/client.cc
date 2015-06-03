@@ -60,9 +60,9 @@ Flow * Client::createFlow()
         if (!std::string("reliable").compare(qoscube))
                 qosspec.maxAllowableGap = 0;
         else if (!std::string("unreliable").compare(qoscube))
-                qosspec.maxAllowableGap = 1;
-	else
-		throw IPCException("not a valid qoscube");
+                qosspec.maxAllowableGap = -1;
+        else
+                throw IPCException("not a valid qoscube");
 
         if (difName != string()) {
                 seqnum = ipcManager->requestFlowAllocationInDIF(
@@ -77,7 +77,7 @@ Flow * Client::createFlow()
                                 qosspec);
         }
 
-        for (;;) {
+	for (;;) {
                 event = ipcEventProducer->eventWait();
                 if (event && event->eventType == ALLOCATE_FLOW_REQUEST_RESULT_EVENT
                                 && event->sequenceNumber == seqnum) {
@@ -102,7 +102,9 @@ Flow * Client::createFlow()
 
 void Client::setup(Flow * flow)
 {
-        char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize)];
+        //TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
+        //when using the shim DIF over Ethernet directly
+        char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32];
 
         unsigned long long ncount = htobe64(count);
         unsigned int ndur = htobe32(duration);
@@ -113,11 +115,11 @@ void Client::setup(Flow * flow)
         memcpy(&initData[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
         flow->writeSDU(initData,
-                        sizeof(count) + sizeof(duration) + sizeof(sduSize));
+                        sizeof(count) + sizeof(duration) + sizeof(sduSize)+32);
 
-        char response[51];
-        response[50] = '\0';
-        flow->readSDU(response, 50);
+        char response[128];
+        response[127] = '\0';
+        flow->readSDU(response, 127);
 
         LOG_INFO("starting test");
 }
@@ -132,7 +134,6 @@ void Client::constantBitRate(Flow * flow)
         double byteMilliRate;
         double intervalTime = 0;
         char toSend[sduSize];
-
         if (rate) {
                 byteMilliRate = rate / 8.0; /*kB/s */
                 intervalTime = sduSize / byteMilliRate; /* ms */
@@ -258,7 +259,7 @@ void Client::sleepUntil(const struct timespec &deadline)
 	struct timespec diff;
         clock_gettime(CLOCK_REALTIME, &now);
 	subtime(&deadline,&now,&diff);
-	nanosleep (&diff, NULL);	        
+	nanosleep (&diff, NULL);
 }
 
 void Client::destroyFlow(Flow * flow)
