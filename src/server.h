@@ -17,26 +17,40 @@
 #include <time.h>
 #include <signal.h>
 
-#include "application.h"
+#include "simple_ap.h"
 
-class Server: public Application
+class server: public simple_ap
 {
 public:
-        Server(const std::string& difName,
-               const std::string& appName,
-               const std::string& appInstance,
-               unsigned int interval_) :
-                       Application(difName, appName, appInstance),
-                       interval(interval_) {}
+server(const std::string& apn,
+       const std::string& api) :
+                simple_ap(apn, api),
+                stat_interval(0) {}
 
-                void run();
+        void run();
+        void configure(unsigned int stat_interval);
+        /* void set_log(string& log_fn); */
 
 protected:
+        /* not used yet */
+        typedef enum {
+                S_SERVER_REGISTER,  /* registering server with DIF */
+                S_SERVER_NEGOTIATE, /* negotiating test parameters */
+                S_SERVER_TEST,      /* performing tests */
+                S_SERVER_IDLE       /* waiting for client */
+        } server_state_t;
 
 private:
-                void startReceive(int port_id);
-                static void timesUp(sigval_t val);
-                unsigned int interval;
+
+/* internal state */
+
+        unsigned int stat_interval ; /* interval to report stats (ms) */
+        /* std::string log_fn; logfile name */
+
+/* internal functions */
+
+        /* respond to a new flow */
+        void handle_flow(int port_id);
 };
 
 #endif

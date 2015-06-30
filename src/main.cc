@@ -22,115 +22,132 @@
 #include "client.h"
 #include "server.h"
 
+/* TODO: add support for test scripts */
+
 int main(int argc, char * argv[])
 {
-        static bool listen;
-        static bool registration;
-        static bool busy;
+        static bool               listen;
+        static bool               registration;
+        static bool               busy;
         static unsigned long long count;
-        static unsigned int size;
-        static unsigned int rate;
-        static unsigned int duration;
-        static unsigned int interval;
-        static std::string serverApn;
-        static std::string serverApi;
-        static std::string clientApn;
-        static std::string clientApi;
-        static std::string difName;
-        static std::string distributionType;
-        static std::string qoscube;
-        static double poissonmean;
+        static unsigned int       size;
+        static unsigned int       rate;
+        static unsigned int       duration;
+        static unsigned int       interval;
+        static std::string        server_apn;
+        static std::string        server_api;
+        static std::string        client_apn;
+        static std::string        client_api;
+        static std::string        dif_name;
+        static std::string        distribution_type;
+        static std::string        qos_cube;
+        static double             poisson_mean;
 
         try {
                 TCLAP::CmdLine cmd("traffic-generator", ' ', PACKAGE_VERSION);
-                TCLAP::SwitchArg listenArg("l",
-                                "listen",
-                                "Run in server (consumer) mode",
-                                false);
-                TCLAP::ValueArg<std::string> difArg("d",
-                                "dif",
-                                "The name of the DIF to use (empty means 'any DIF')",
-                                false,
-                                "",
-                                "string");
-                TCLAP::ValueArg<std::string> serverApnArg("",
-                                "server-apn",
-                                "Application process name for the server",
-                                false,
-                                "traffic.generator.server",
-                                "string");
-                TCLAP::ValueArg<std::string> serverApiArg("",
-                                "server-api",
-                                "Application process instance for the server",
-                                false,
-                                "1",
-                                "string");
-                TCLAP::ValueArg<std::string> clientApnArg("",
-                                "client-apn",
-                                "Application process name for the client",
-                                false,
-                                "traffic.generator.client",
-                                "string");
-                TCLAP::ValueArg<std::string> clientApiArg("",
-                                "client-api",
-                                "Application process instance for the client",
-                                false,
-                                "1",
-                                "string");
-                TCLAP::SwitchArg registrationArg("r",
-                                "register",
-                                "Register the application to any dif",
-                                false);
-                TCLAP::ValueArg<unsigned int> sizeArg("s",
-                                "size",
-                                "Size of the SDUs to send (bytes)",
-                                false,
-                                500,
-                                "unsigned integer");
-                TCLAP::ValueArg<unsigned long long> countArg("c",
-                                "count",
-                                "Number of SDUs to send, 0 = unlimited",
-                                false,
-                                0,
-                                "unsigned integer");
-                TCLAP::ValueArg<unsigned int> durationArg("",
-                                "duration",
-                                "Duration of the test (seconds), 0 = unlimited",
-                                false,
-                                60,
-                                "unsigned integer");
-                TCLAP::ValueArg<unsigned int> rateArg("",
-                                "rate",
-                                "Bitrate to send the SDUs, in kb/s, 0 = no limit",
-                                false,
-                                0,
-                                "unsigned integer");
-                TCLAP::ValueArg<std::string> qoscubeArg("",
-                                "qoscube",
-                                "Specify the qos cube to use for flow allocation",
-                                false,
-                                "unreliable",
-                                "string");
-                TCLAP::ValueArg<std::string> distributionArg("",
-                                "distribution",
-                                "Distribution type: CBR, poisson",
-                                false,
-                                "CBR",
-                                "string");
-		TCLAP::ValueArg<double> poissonMeanArg("",
-                                "poissonmean",
-                                "The mean value for the poisson distribution "
-				"used to generate interarrival times, "
-                                "default is 1.",
-                                false,
-                                1,
-                                "double");
-                TCLAP::ValueArg<unsigned int> intervalArg("",
-                                "interval",
-                                "report statistics every x SDUs (server)",
-                                false,
-                                100000000,
-				"unsigned integer");
+                TCLAP::SwitchArg listenArg(
+                        "l",
+                        "listen",
+                        "Run in server (consumer) mode",
+                        false);
+                TCLAP::ValueArg<std::string> difArg(
+                        "d",
+                        "dif",
+                        "The name of the DIF to use (empty means 'any DIF')",
+                        false,
+                        "",
+                        "string");
+                TCLAP::ValueArg<std::string> serverApnArg(
+                        "",
+                        "server-apn",
+                        "Application process name for the server",
+                        false,
+                        "traffic.generator.server",
+                        "string");
+                TCLAP::ValueArg<std::string> serverApiArg(
+                        "",
+                        "server-api",
+                        "Application process instance for the server",
+                        false,
+                        "1",
+                        "string");
+                TCLAP::ValueArg<std::string> clientApnArg(
+                        "",
+                        "client-apn",
+                        "Application process name for the client",
+                        false,
+                        "traffic.generator.client",
+                        "string");
+                TCLAP::ValueArg<std::string> clientApiArg(
+                        "",
+                        "client-api",
+                        "Application process instance for the client",
+                        false,
+                        "1",
+                        "string");
+                TCLAP::SwitchArg registrationArg(
+                        "r",
+                        "register",
+                        "Register the application with the DIF",
+                        false);
+                TCLAP::ValueArg<unsigned int> sizeArg(
+                        "s",
+                        "size",
+                        "Size of the SDUs to send (bytes)",
+                        false,
+                        500,
+                        "unsigned integer");
+                TCLAP::ValueArg<unsigned long long> countArg(
+                        "c",
+                        "count",
+                        "Number of SDUs to send, 0 = unlimited",
+                        false,
+                        0,
+                        "unsigned integer");
+                TCLAP::ValueArg<unsigned int> durationArg(
+                        "",
+                        "duration",
+                        "Duration of the test (seconds), 0 = unlimited",
+                        false,
+                        0,
+                        "unsigned integer");
+                TCLAP::ValueArg<unsigned int> rateArg(
+                        "",
+                        "rate",
+                        "Bitrate to send the SDUs, in kb/s, 0 = no limit",
+                        false,
+                        0,
+                        "unsigned integer");
+                TCLAP::ValueArg<std::string> qoscubeArg(
+                        "",
+                        "qoscube",
+                        "Specify the qos cube to use for flow allocation",
+                        false,
+                        "unreliable",
+                        "string");
+                TCLAP::ValueArg<std::string> distributionArg(
+                        "",
+                        "distribution",
+                        "Distribution type: CBR, poisson",
+                        false,
+                        "CBR",
+                        "string");
+		TCLAP::ValueArg<double> poissonMeanArg(
+                        "",
+                        "poissonmean",
+                        "The mean value for the poisson distribution "
+                        "used to generate interarrival times, "
+                        "default is 1.",
+                        false,
+                        1,
+                        "double");
+                TCLAP::ValueArg<unsigned int> intervalArg(
+                        "",
+                        "interval",
+                        "report statistics every x ms (server)",
+                        false,
+                        1000,
+                        "unsigned integer");
 		TCLAP::SwitchArg sleepArg("",
                                 "sleep",
                                 "sleep instead of busywait between sending SDUs",
@@ -155,26 +172,22 @@ int main(int argc, char * argv[])
 
                 cmd.parse(argc, argv);
 
-                listen = listenArg.getValue();
-                count = countArg.getValue();
-                registration = registrationArg.getValue();
-                size = sizeArg.getValue();
-                serverApn = serverApnArg.getValue();
-                serverApi = serverApiArg.getValue();
-                clientApn = clientApnArg.getValue();
-                clientApi = clientApiArg.getValue();
-                difName = difArg.getValue();
-                rate = rateArg.getValue();
-                duration = durationArg.getValue();
-                qoscube = qoscubeArg.getValue();
-                distributionType = distributionArg.getValue();
-                interval = intervalArg.getValue();
-		busy = !sleepArg.getValue();
-		poissonmean = poissonMeanArg.getValue();
-                if (size > Application::maxBufferSize) {
-                        size = Application::maxBufferSize;
-                        LOG_INFO("Packet size truncated to %u", size);
-                }
+                listen            = listenArg.getValue();
+                count             = countArg.getValue();
+                registration      = registrationArg.getValue();
+                size              = sizeArg.getValue();
+                server_apn        = serverApnArg.getValue();
+                server_api        = serverApiArg.getValue();
+                client_apn        = clientApnArg.getValue();
+                client_api        = clientApiArg.getValue();
+                dif_name          = difArg.getValue();
+                rate              = rateArg.getValue();
+                duration          = durationArg.getValue();
+                qos_cube          = qoscubeArg.getValue();
+                distribution_type = distributionArg.getValue();
+                interval          = intervalArg.getValue();
+		busy              = !sleepArg.getValue();
+		poisson_mean      = poissonMeanArg.getValue();
 
         } catch (TCLAP::ArgException &e) {
                 LOG_ERR("Error: %s for arg %d",
@@ -182,22 +195,39 @@ int main(int argc, char * argv[])
                                 e.argId().c_str());
                 exit(1);
         }
-
+        if (!count && !duration)
+                duration = 60; //run a 60 second test
         try {
                 rina::initialize("INFO", "");
 
                 if (listen) {
                         // Server mode
-                        Server s(difName, serverApn, serverApi, interval);
-
+                        server s(server_apn, server_api);
+                        s.configure(interval);
+                        s.register_ap(dif_name);
                         s.run();
                 } else {
                         // Client mode
-                        Client c(difName, clientApn, clientApi, serverApn,
-                                 serverApi, registration, distributionType,
-				 size, count, duration, rate, qoscube, busy, poissonmean);
-
-                        c.run();
+                        client c(client_apn, client_api);
+                        /* FIXME: "" means any DIF, should be cleaned up */
+                        if (registration)
+                                c.register_ap(dif_name);
+                        int port_id = c.request_flow(server_apn, server_api, qos_cube);
+                        if (distribution_type == "CBR" || distribution_type == "cbr")
+                                c.single_cbr_test(size,
+                                                count,
+                                                duration,
+                                                rate,
+                                                busy,
+                                                port_id);
+                        else if (distribution_type == "poisson")
+                                c.single_poisson_test( size,
+                                                       count,
+                                                       duration,
+                                                       rate,
+                                                       busy,
+                                                       poisson_mean,
+                                                       port_id);
                 }
         } catch (rina::Exception& e) {
                 LOG_ERR("%s", e.what());

@@ -1,10 +1,10 @@
 /*
  * Traffic generator
  *
- *   Addy Bombeke <addy.bombeke@ugent.be>
+ *   Addy Bombeke      <addy.bombeke@ugent.be>
  *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
- *   Douwe De Bock <douwe.debock@ugent.be>
- *   Sander Vrijders <sander.vrijders@intec.ugent.be>
+ *   Douwe De Bock     <douwe.debock@ugent.be>
+ *   Sander Vrijders   <sander.vrijders@intec.ugent.be>
  *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
@@ -25,18 +25,17 @@
 #include <librina/logs.h>
 
 #include "client.h"
+#include "timeutils.h"
 
 using namespace std;
 using namespace rina;
 
-void Client::run()
+/*
+void client::run()
 {
         int port_id=0;
 
-        if (registerClient)
-                applicationRegister();
-
-        if ((port_id = createFlow()) < 0) {
+        if ((port_id = request_flow()) < 0) {
 	        LOG_ERR("Problems creating flow, exiting...");
                 return;
         }
@@ -45,182 +44,156 @@ void Client::run()
         if (!std::string("CBR").compare(distributionType))
                 constantBitRate(port_id);
         else if (!std::string("poisson").compare(distributionType))
-                poissonDistribution(port_id);
+        poissonDistribution(port_id); */
 	/* FIXME: removed until we have a non-blocking readSDU ()
         receiveServerStats(port_id);
-        */
         destroyFlow(port_id);
-}
+} */
 
-int Client::createFlow()
-{
-        AllocateFlowRequestResultEvent * afrrevent;
-        FlowSpecification qosspec;
-        IPCEvent * event;
-        unsigned int seqnum;
-
-        if (!std::string("reliable").compare(qoscube))
-                qosspec.maxAllowableGap = 0;
-        else if (!std::string("unreliable").compare(qoscube))
-                qosspec.maxAllowableGap = -1;
-        else
-                throw IPCException("not a valid qoscube");
-
-        if (difName != string()) {
-                seqnum = ipcManager->requestFlowAllocationInDIF(
-                                ApplicationProcessNamingInformation(appName, appInstance),
-                                ApplicationProcessNamingInformation(serverName, serverInstance),
-                                ApplicationProcessNamingInformation(difName, string()),
-                                qosspec);
-        } else {
-                seqnum = ipcManager->requestFlowAllocation(
-                                ApplicationProcessNamingInformation(appName, appInstance),
-                                ApplicationProcessNamingInformation(serverName, serverInstance),
-                                qosspec);
-        }
-
-	for (;;) {
-                event = ipcEventProducer->eventWait();
-                if (event && event->eventType == ALLOCATE_FLOW_REQUEST_RESULT_EVENT
-                                && event->sequenceNumber == seqnum) {
-                        break;
-                }
-                LOG_DBG("Client got new event %d", event->eventType);
-        }
-
-        afrrevent = dynamic_cast<AllocateFlowRequestResultEvent*>(event);
-
-	rina::FlowInformation flow = ipcManager->commitPendingFlow(afrrevent->sequenceNumber,
-                                                                   afrrevent->portId,
-                                                                   afrrevent->difName);
-        if (flow.portId < 0) {
-                LOG_ERR("Failed to allocate a flow");
-                return 0;
-        } else
-                LOG_DBG("Port id = %d", flow.portId);
-        return flow.portId;
-}
-
-void Client::setup(int port_id)
+/* this needs to be redesigned, we need test templates */
+int client::negotiate_test(long long count, int duration, int sdu_size, int port_id)
 {
         //TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
         //when using the shim DIF over Ethernet directly
-        char initData[sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32];
+        char init_data[sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32];
 
         unsigned long long ncount = htobe64(count);
         unsigned int ndur = htobe32(duration);
-        unsigned int nsize = htobe32(sduSize);
+        unsigned int nsize = htobe32(sdu_size);
 
-        memcpy(initData, &ncount, sizeof(ncount));
-        memcpy(&initData[sizeof(ncount)], &ndur, sizeof(ndur));
-        memcpy(&initData[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
+        memcpy(init_data, &ncount, sizeof(ncount));
+        memcpy(&init_data[sizeof(ncount)], &ndur, sizeof(ndur));
+        memcpy(&init_data[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
-        ipcManager->writeSDU(port_id, initData,
-                        sizeof(count) + sizeof(duration) + sizeof(sduSize) + 32);
+        ipcManager->writeSDU(port_id, init_data,
+                        sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32);
 
         char response[128];
         response[127] = '\0';
-        ipcManager->readSDU(port_id,response, 127);
+        ipcManager->readSDU(port_id, response, 127);
         LOG_INFO("starting test");
+        return 0; //ALL IS WELL
 }
 
-void Client::constantBitRate(int port_id)
+/* needs common code extracted and function ptrs to
+   interval generator and packet generator functions
+   probably out of scope for PRISTINE */
+/* void client::test(struct test_specs specs, void (*pkt_gen)(args), void (*intv_gen)(args)) */
+void client::single_cbr_test(unsigned int size,
+                             unsigned long long count,
+                             unsigned int duration, /* ms */
+                             unsigned int rate,
+                             bool busy,
+                             int port_id)
 {
         unsigned long long seq = 0;
         struct timespec start;
         struct timespec end;
 	struct timespec deadline;
         bool stop = 0;
-        double byteMilliRate;
-        double intervalTime = 0;
-        char toSend[sduSize];
+        double byterate;
+        double interval_time = 0;
+        char to_send[size];
+
+        if (negotiate_test(count, duration, size, port_id) < 0)
+                return;
+
         if (rate) {
-                byteMilliRate = rate / 8.0; /*kB/s */
-                intervalTime = sduSize / byteMilliRate; /* ms */
+                byterate = rate / 8.0; /*kB/s */
+                interval_time = size / byterate; /* ms */
         }
 
         clock_gettime(CLOCK_REALTIME, &start);
         while (!stop) {
-                memcpy(toSend, &seq, sizeof(seq));
-                ipcManager->writeSDU(port_id, toSend, sduSize);
-		long nanos = seq*intervalTime*MILLION;
+                memcpy(to_send, &seq, sizeof(seq));
+                ipcManager->writeSDU(port_id, to_send, size);
+		long nanos = seq*interval_time*MILLION;
 	        int seconds = 0;
 		while (nanos > BILLION) {
 			seconds++;
 			nanos -= BILLION;
 		}
 		const struct timespec interval = {seconds, nanos};
-		addtime (&start, &interval, &deadline);
+		ts_add(&start, &interval, &deadline);
 		if (busy)
-		        busyWaitUntil(deadline);
+		        busy_wait_until(deadline);
 		else
-		        sleepUntil(deadline);
+		        sleep_until(deadline);
                 seq++;
 		clock_gettime(CLOCK_REALTIME, &end);
-                if (duration && usElapsed(start, end)/MILLION >= duration)
-                        stop = 1;
-                if (count && seq >= count)
-		  stop = 1;
+                if (duration && ts_diff_us(start, end)/MILLION >= duration)
+                        stop = true;
+                if (!duration && count && seq >= count)
+		  stop = true;
         }
         clock_gettime(CLOCK_REALTIME, &end);
 
-        unsigned int us = usElapsed(start, end);
+        unsigned int us = ts_diff_us(start, end);
         LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u us",
-                        seq, seq * sduSize, us);
+                        seq, seq * size, us);
         LOG_INFO("\t=> %.4f Mb/s",
-                        static_cast<float>((seq*sduSize * 8.0)/(us)));
+                        static_cast<float>((seq*size * 8.0)/(us)));
 }
 
-void Client::poissonDistribution(int port_id)
+void client::single_poisson_test(unsigned int size,
+                                unsigned long long count,
+                                unsigned int duration, /* ms */
+                                unsigned int rate, /* b/s */
+                                bool busy,
+                                double poisson_mean,
+                                int port_id)
 {
         unsigned long long seq = 0;
-        struct timespec start;
-        struct timespec end;
-        bool stop = 0;
-        double byteMilliRate;
-        double intervalTime = 0;
-        char toSend[sduSize];
+        struct timespec    start;
+        struct timespec    end;
+        bool               stop = 0;
+        double             interval_time = 0;
+        double             byterate; /* B/ms */
+        char               to_send[size];
+
+        if (negotiate_test(count, duration, size, port_id) < 0)
+                return;
 
         if (rate) {
-                byteMilliRate = rate / 8.0;
-                intervalTime = sduSize / byteMilliRate; /* ms */
+                byterate = rate / 8.0;
+                interval_time = size / byterate; /* ms */
         }
 
         boost::mt19937 gen;
         gen.seed(time(NULL));
-        boost::poisson_distribution<int> pdist(poissonmean);
+        boost::poisson_distribution<int> pdist(poisson_mean);
         boost::variate_generator<boost::mt19937,
                 boost::poisson_distribution<int> > rvt(gen, pdist);
 
         clock_gettime(CLOCK_REALTIME, &start);
 	struct timespec next = start;
         while (!stop) {
-                memcpy(toSend, &seq, sizeof(seq));
-                ipcManager->writeSDU(port_id, toSend, sduSize);
-		long nanos = rvt()*MILLION/poissonmean*intervalTime;
+                memcpy(to_send, &seq, sizeof(seq));
+                ipcManager->writeSDU(port_id, to_send, size);
+		long nanos = rvt()*MILLION/poisson_mean*interval_time;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
-		addtime(&next,&interval,&next);
+		ts_add(&next,&interval,&next);
 		if (busy)
-		        busyWaitUntil(next);
+		        busy_wait_until(next);
 		else
-		        sleepUntil(next);
+		        sleep_until(next);
                 seq++;
                 clock_gettime(CLOCK_REALTIME, &end);
-                if (duration != 0 && usElapsed(start, end)/MILLION >= duration)
+                if (duration != 0 && ts_diff_us(start, end)/MILLION >= duration)
                         stop = 1;
                 if (count != 0 && seq >= count)
 		        stop = 1;
         }
         clock_gettime(CLOCK_REALTIME, &end);
 
-        unsigned int us = usElapsed(start, end);
+        unsigned int us = ts_diff_us(start, end);
         LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u us",
-                        seq, seq * sduSize, us);
+                        seq, seq * size, us);
         LOG_INFO("\t=> %.4f Mb/s",
-                        static_cast<float>((seq*sduSize * 8.0)/us));
+                        static_cast<float>((seq*size * 8.0)/us));
 }
-
-void Client::receiveServerStats(int port_id)
+/* obsolete until we have non-blocking I/O
+void client::receive_server_stats(int port_id)
 {
         char response[128];
         unsigned long long totalBytes;
@@ -239,10 +212,11 @@ void Client::receiveServerStats(int port_id)
                         sduCount, totalBytes, ms);
         LOG_INFO("\t=> %.4f Mb/s",
                         static_cast<float>((totalBytes * 8.0) / (ms * 1000)));
-}
+} */
 
 /* if deadline is in the past, this function will just return */
-void Client::busyWaitUntil(const struct timespec &deadline)
+
+void client::busy_wait_until(const struct timespec &deadline)
 {
         struct timespec now;
         clock_gettime(CLOCK_REALTIME, &now);
@@ -252,33 +226,12 @@ void Client::busyWaitUntil(const struct timespec &deadline)
 		clock_gettime(CLOCK_REALTIME, &now);
 }
 
-void Client::sleepUntil(const struct timespec &deadline)
+void client::sleep_until(const struct timespec &deadline)
 {
         /* TODO: use sleep for longer waits to avoid burning the CPU */
         struct timespec now;
 	struct timespec diff;
         clock_gettime(CLOCK_REALTIME, &now);
-	subtime(&deadline,&now,&diff);
+	ts_diff(&deadline,&now,&diff);
 	nanosleep (&diff, NULL);
-}
-
-void Client::destroyFlow(int port_id)
-{
-        DeallocateFlowResponseEvent * resp = 0;
-        unsigned int seqNum;
-        IPCEvent * event;
-
-        seqNum = ipcManager->requestFlowDeallocation(port_id);
-
-        for (;;) {
-                event = ipcEventProducer->eventWait();
-                if (event && event->eventType == DEALLOCATE_FLOW_RESPONSE_EVENT
-                                && event->sequenceNumber == seqNum) {
-                        break;
-                }
-                LOG_DBG("Client got new event %d", event->eventType);
-        }
-        resp = dynamic_cast<DeallocateFlowResponseEvent*>(event);
-
-        ipcManager->flowDeallocationResult(port_id, resp->result == 0);
 }

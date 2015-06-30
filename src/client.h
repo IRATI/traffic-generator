@@ -2,8 +2,8 @@
  * Traffic generator
  *
  *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
- *   Douwe De Bock <douwe.debock@ugent.be>
- *   Sander Vrijders <sander.vrijders@intec.ugent.be>
+ *   Douwe De Bock     <douwe.debock@ugent.be>
+ *   Sander Vrijders   <sander.vrijders@intec.ugent.be>
  *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
@@ -15,67 +15,43 @@
 #include <string>
 #include <librina/librina.h>
 
-#include "application.h"
+#include "simple_ap.h"
 
-class Client: public Application {
+class client: public simple_ap {
 public:
-        Client(const std::string& difName_,
-               const std::string& apn,
-               const std::string& api,
-               const std::string& serverApn,
-               const std::string& serverApi,
-               bool registration,
-               const std::string& distributionType_,
-               unsigned int size_,
-               unsigned long long count_,
-               unsigned int duration_,
-               unsigned int rate_,
-               const std::string& qoscube_,
-	       bool busy_,
-	       double poissonmean_) :
-                        Application(difName_, apn, api),
-                        difName(difName_),
-                        serverName(serverApn),
-                        serverInstance(serverApi),
-                        registerClient(registration),
-                        distributionType(distributionType_),
-                        sduSize(size_),
-                        count(count_),
-                        duration(duration_),
-                        rate(rate_),
-			qoscube(qoscube_),
-			busy(busy_),
-			poissonmean(poissonmean_) {
-                                if (!duration == !count)
-                                        throw rina::IPCException(
-					"not a valid count and duration combination!");
-                        }
-        void run();
+/* constructor */
+client(const std::string& apn,
+       const std::string& api) :
+        simple_ap(apn, api) {}
+
+/* member functions */
+
+        void single_cbr_test(unsigned int size,
+                            unsigned long long count,
+                            unsigned int duration, /* ms */
+                            unsigned int rate,
+                            bool busy,
+                            int port_id);
+
+        void single_poisson_test(unsigned int size,
+                                 unsigned long long count,
+                                 unsigned int duration, /* ms */
+                                 unsigned int rate,
+                                 bool busy,
+                                 double poisson_mean,
+                                 int port_id);
 
 protected:
-        int createFlow();
-        void setup(int port_id);
-        void constantBitRate(int port_id);
-        void poissonDistribution(int port_id);
+
+        int negotiate_test(int port_id);
+
+        void cbr_flow(int port_id);
+        void poisson_flow(int port_id);
+
         void receiveServerStats(int port_id);
-        void destroyFlow(int port_id);
-
 private:
-        std::string difName;
-        std::string serverName;
-        std::string serverInstance;
-        bool registerClient;
-        std::string distributionType;
-        unsigned int sduSize;
-        unsigned long long count;
-        unsigned int duration;
-        unsigned int rate;
-        std::string qoscube;
-        bool busy;
-        double poissonmean;
-
-        void busyWaitUntil (const struct timespec &deadline);
-        void sleepUntil(const struct timespec &deadline);
-        unsigned int secondsElapsed(struct timespec &start);
+        int negotiate_test (long long count, int duration, int sdu_size, int port_id);
+        void busy_wait_until (const struct timespec &deadline);
+        void sleep_until(const struct timespec &deadline);
 };
-#endif//CLIENT_HPP
+#endif  // CLIENT_HPP
