@@ -122,7 +122,7 @@ void client::single_cbr_test(unsigned int size,
                 seq++;
 		clock_gettime(CLOCK_REALTIME, &end);
                 if (duration &&
-                		(unsigned int)ts_diff_us(start, end)/MILLION >= duration)
+                		ts_diff_us(start, end)/MILLION >= (long)duration)
                         stop = true;
                 if (!duration && count && seq >= count)
 		  stop = true;
@@ -181,7 +181,7 @@ void client::single_poisson_test(unsigned int size,
                 seq++;
                 clock_gettime(CLOCK_REALTIME, &end);
                 if (duration != 0 &&
-                		(unsigned int)ts_diff_us(start, end)/MILLION >= duration)
+                		ts_diff_us(start, end)/MILLION >= (long)duration)
                         stop = 1;
                 if (count != 0 && seq >= count)
 		        stop = 1;
