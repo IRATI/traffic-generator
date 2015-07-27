@@ -13,7 +13,7 @@ rina_tgen_SOURCES  =				\
 	simple_ap.cc		simple_ap.h	\
 	server.cc		server.h	\
 	client.cc		client.h	\
-        timeutils.cc		timeutils.h	\
+        timeutils.c		timeutils.h	\
         main.cc
 
 rina_tgen_LDADD    = $(LIBRINA_LIBS)		\

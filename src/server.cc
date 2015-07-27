@@ -141,10 +141,10 @@ void server::handle_flow(int port_id)
                         sdus++;
                         if (!timed_test && sdus >= count)
                                 stop = true;
-                        if (timed_test && (sdus >= count || ts_diff_us(now,end) < 0))
+                        if (timed_test && (sdus >= count || ts_diff_us(&now,&end) < 0))
                                 stop = true;
-                        if (stat_interval && (stop || ts_diff_us(now, iv_end) < 0)) {
-                                int us = ts_diff_us(iv_start, now);
+                        if (stat_interval && (stop || ts_diff_us(&now, &iv_end) < 0)) {
+                                int us = ts_diff_us(&iv_start, &now);
 				LOG_INFO("%llu SDUs (%llu bytes) in %lu us => %.4f p/s,  %.4f Mb/s",
                                          sdus-sdus_intv,
                                          bytes_read-bytes_read_intv,
@@ -158,7 +158,7 @@ void server::handle_flow(int port_id)
                         }
                 }
                 clock_gettime(CLOCK_REALTIME, &end);
-                unsigned int ms = ts_diff_ms(start, end);
+                long ms = ts_diff_ms(&start, &end);
                 /* FIXME: removed until we have non-blocking readSDU()
                    unsigned int nms = htobe32(ms);
                    unsigned long long ncount = htobe64(totalSdus);
@@ -172,7 +172,7 @@ void server::handle_flow(int port_id)
                 ipcManager->writeSDU(port_id, statistics, sizeof(statistics) + 64);
                 */
 
-                LOG_INFO("Result: %llu SDUs, %llu bytes in %lu ms", sdus, bytes_read, ms);
+                LOG_INFO("Result: %llu SDUs, %llu bytes in %ld ms", sdus, bytes_read, ms);
                 LOG_INFO("\t=> %.4f Mb/s", static_cast<float>((bytes_read * 8.0) / (ms * 1000)));
         } catch (IPCException& ex) {
 	}
