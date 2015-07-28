@@ -28,7 +28,7 @@ version >= 1.55, to be installed.
 You may need to configure the path for pkgconfig:
 
 ```
-export PKG_CONFIG_PATH=/path/to/irati/lib/pkfconfig
+export PKG_CONFIG_PATH=/path/to/irati/lib/pkgconfig
 ```
 
 Installation should work as follows:
