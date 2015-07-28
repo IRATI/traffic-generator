@@ -13,10 +13,19 @@
 #ifndef TIME_UTILS_H
 #define TIME_UTILS_H
 
-#define MILLION 1000000L
-#define BILLION 1000000000L
+#ifndef MILLION
+  #define MILLION  1000000
+#endif
+#ifndef BILLION
+  #define BILLION  1000000000
+#endif
 
-#include <time.h>
+#include <sys/time.h>
+#include <limits.h> //for LONG_MAX
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* functions for timespecs */
 
@@ -31,16 +40,16 @@ void ts_diff(const struct timespec * t,
              struct timespec       * res);
 
 /* subtracting fields is faster than using ts_diff */
-long ts_diff_ns(const struct timespec &start,
-                const struct timespec &end);
+long ts_diff_ns(const struct timespec * start,
+                const struct timespec * end);
 
 /* subtracting fields is faster than using ts_diff */
-long ts_diff_us(const struct timespec &start,
-                const struct timespec &end);
+long ts_diff_us(const struct timespec * start,
+                const struct timespec * end);
 
 /* subtracting fields is faster than using ts_diff */
-long ts_diff_ms(const struct timespec &start,
-		const struct timespec &end);
+long ts_diff_ms(const struct timespec * start,
+		const struct timespec * end);
 
 /* functions for timevals */
 
@@ -55,12 +64,12 @@ void tv_diff(const struct timeval * t,
              struct timeval       * res);
 
 /* subtracting fields is faster than using tv_diff */
-long tv_diff_us(const struct timeval &start,
-                const struct timeval &end);
+long tv_diff_us(const struct timeval * start,
+                const struct timeval * end);
 
 /* subtracting fields is faster than using tv_diff */
-long tv_diff_ms(const struct timeval &start,
-		const struct timeval &end);
+long tv_diff_ms(const struct timeval * start,
+		const struct timeval * end);
 
 /* FIXME: not sure about the next two functions */
 /* copying a timeval into a timespec */
@@ -70,5 +79,9 @@ void tv_to_ts(const struct timeval * src,
 /* copying a timespec into a timeval (loss of resolution) */
 void ts_to_tv(const struct timespec * src,
               struct timeval * dst);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TIME_UTILS_H */

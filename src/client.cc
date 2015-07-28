@@ -121,16 +121,15 @@ void client::single_cbr_test(unsigned int size,
 		        sleep_until(deadline);
                 seq++;
 		clock_gettime(CLOCK_REALTIME, &end);
-                if (duration &&
-                		ts_diff_us(start, end)/MILLION >= (long)duration)
+                if (duration && ts_diff_ms(&start, &end) >= (long)duration)
                         stop = true;
                 if (!duration && count && seq >= count)
 		  stop = true;
         }
         clock_gettime(CLOCK_REALTIME, &end);
 
-        unsigned int us = ts_diff_us(start, end);
-        LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u us",
+        long us = ts_diff_us(&start, &end);
+        LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %ld us",
                         seq, seq * size, us);
         LOG_INFO("\t=> %.4f Mb/s",
                         static_cast<float>((seq*size * 8.0)/(us)));
@@ -180,16 +179,15 @@ void client::single_poisson_test(unsigned int size,
 		        sleep_until(next);
                 seq++;
                 clock_gettime(CLOCK_REALTIME, &end);
-                if (duration != 0 &&
-                		ts_diff_us(start, end)/MILLION >= (long)duration)
+                if (duration != 0 && ts_diff_ms(&start, &end) >= (long)duration)
                         stop = 1;
                 if (count != 0 && seq >= count)
 		        stop = 1;
         }
         clock_gettime(CLOCK_REALTIME, &end);
 
-        unsigned int us = ts_diff_us(start, end);
-        LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %u us",
+        long us = ts_diff_us(&start, &end);
+        LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %ld us",
                         seq, seq * size, us);
         LOG_INFO("\t=> %.4f Mb/s",
                         static_cast<float>((seq*size * 8.0)/us));

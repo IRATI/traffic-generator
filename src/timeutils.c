@@ -55,27 +55,37 @@ void ts_diff(const struct timespec * t,
 }
 
 /* subtracting fields is faster than using ts_diff */
-long ts_diff_ns(const struct timespec &start,
-                const struct timespec &end)
+/* returns LONG_MAX on null_ptr input */
+long ts_diff_ns(const struct timespec * start,
+                const struct timespec * end)
 {
-        return (end.tv_sec-start.tv_sec)*BILLION
-                + (end.tv_nsec-start.tv_nsec);
+        if (!(start && end))
+                return LONG_MAX;
+
+        return (end->tv_sec-start->tv_sec)*BILLION
+                + (end->tv_nsec-start->tv_nsec);
 }
 
 /* subtracting fields is faster than using ts_diff */
-long ts_diff_us(const struct timespec &start,
-                const struct timespec &end)
+long ts_diff_us(const struct timespec * start,
+                const struct timespec * end)
 {
-        return (end.tv_sec-start.tv_sec)*MILLION
-                + (end.tv_nsec - start.tv_nsec)/1000L;
+        if (!(start && end))
+                return LONG_MAX;
+
+        return (end->tv_sec-start->tv_sec)*MILLION
+                + (end->tv_nsec - start->tv_nsec)/1000L;
 }
 
 /* subtracting fields is faster than using ts_diff */
-long ts_diff_ms(const struct timespec &start,
-		const struct timespec &end)
+long ts_diff_ms(const struct timespec * start,
+		const struct timespec * end)
 {
-        return (end.tv_sec-start.tv_sec)*1000L
-                + (end.tv_nsec-start.tv_nsec)/MILLION;
+        if (!(start && end))
+                return LONG_MAX;
+
+        return (end->tv_sec-start->tv_sec)*1000L
+                + (end->tv_nsec-start->tv_nsec)/MILLION;
 }
 
 /* functions for timevals */
@@ -121,19 +131,25 @@ void tv_diff(const struct timeval * t,
 }
 
 /* subtracting fields is faster than using tv_diff */
-long tv_diff_us(const struct timeval &start,
-                const struct timeval &end)
+long tv_diff_us(const struct timeval * start,
+                const struct timeval * end)
 {
-        return (end.tv_sec-start.tv_sec)*MILLION
-                + (end.tv_usec-start.tv_usec);
+        if (!(start && end))
+                return LONG_MAX;
+
+        return (end->tv_sec-start->tv_sec)*MILLION
+                + (end->tv_usec-start->tv_usec);
 }
 
 /* subtracting fields is faster than using tv_diff */
-long tv_diff_ms(const struct timeval &start,
-		const struct timeval &end)
+long tv_diff_ms(const struct timeval * start,
+		const struct timeval * end)
 {
-        return (end.tv_sec-start.tv_sec)*1000L
-                + (end.tv_usec-start.tv_usec)/1000L;
+        if (!(start && end))
+                return LONG_MAX;
+
+        return (end->tv_sec-start->tv_sec)*1000L
+                + (end->tv_usec-start->tv_usec)/1000L;
 }
 
 /* FIXME: not sure about the next two functions */
@@ -141,6 +157,9 @@ long tv_diff_ms(const struct timeval &start,
 void tv_to_ts(const struct timeval * src,
               struct timespec * dst)
 {
+        if (!(src && dst))
+                return;
+
         dst->tv_sec=src->tv_sec;
         dst->tv_nsec = src->tv_usec*1000L;
 }
@@ -149,6 +168,9 @@ void tv_to_ts(const struct timeval * src,
 void ts_to_tv(const struct timespec * src,
               struct timeval * dst)
 {
+        if (!(src && dst))
+                return;
+
         dst->tv_sec=src->tv_sec;
         dst->tv_usec = src->tv_nsec/1000L;
 }

@@ -216,14 +216,14 @@ int main(int argc, char * argv[])
                         if (distribution_type == "CBR" || distribution_type == "cbr")
                                 c.single_cbr_test(size,
                                                 count,
-                                                duration,
+                                                duration*1000,
                                                 rate,
                                                 busy,
                                                 port_id);
                         else if (distribution_type == "poisson")
                                 c.single_poisson_test( size,
                                                        count,
-                                                       duration,
+                                                       duration*1000,
                                                        rate,
                                                        busy,
                                                        poisson_mean,
