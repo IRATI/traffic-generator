@@ -22,36 +22,36 @@ public:
 /* constructor */
 client(const std::string& apn,
        const std::string& api) :
-        simple_ap(apn, api) {}
+	simple_ap(apn, api) {}
 
 /* member functions */
 
-        void single_cbr_test(unsigned int size,
-                            unsigned long long count,
-                            unsigned int duration, /* ms */
-                            unsigned int rate,
-                            bool busy,
-                            int port_id);
+	void single_cbr_test(unsigned int size,
+			     unsigned long long count,
+			     unsigned int duration, /* ms */
+			     unsigned int rate,
+			     bool busy,
+			     int port_id);
 
-        void single_poisson_test(unsigned int size,
-                                 unsigned long long count,
-                                 unsigned int duration, /* ms */
-                                 unsigned int rate,
-                                 bool busy,
-                                 double poisson_mean,
-                                 int port_id);
+	void single_poisson_test(unsigned int size,
+				 unsigned long long count,
+				 unsigned int duration, /* ms */
+				 unsigned int rate,
+				 bool busy,
+				 double poisson_mean,
+				 int port_id);
 
 protected:
 
-        int negotiate_test(int port_id);
+	int negotiate_test(int port_id);
 
-        void cbr_flow(int port_id);
-        void poisson_flow(int port_id);
+	void cbr_flow(int port_id);
+	void poisson_flow(int port_id);
 
-        void receiveServerStats(int port_id);
+	void receiveServerStats(int port_id);
 private:
-        int negotiate_test (long long count, int duration, int sdu_size, int port_id);
-        void busy_wait_until (const struct timespec &deadline);
-        void sleep_until(const struct timespec &deadline);
+	int negotiate_test (long long count, int duration, int sdu_size, int port_id);
+	void busy_wait_until (const struct timespec &deadline);
+	void sleep_until(const struct timespec &deadline);
 };
-#endif  // CLIENT_HPP
+#endif	// CLIENT_HPP

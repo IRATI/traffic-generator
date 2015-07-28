@@ -24,33 +24,33 @@ class server: public simple_ap
 public:
 server(const std::string& apn,
        const std::string& api) :
-                simple_ap(apn, api),
-                stat_interval(0) {}
+	simple_ap(apn, api),
+		stat_interval(0) {}
 
-        void run();
-        void configure(unsigned int stat_interval);
-        /* void set_log(string& log_fn); */
+	void run();
+	void configure(unsigned int stat_interval);
+	/* void set_log(string& log_fn); */
 
 protected:
-        /* not used yet */
-        typedef enum {
-                S_SERVER_REGISTER,  /* registering server with DIF */
-                S_SERVER_NEGOTIATE, /* negotiating test parameters */
-                S_SERVER_TEST,      /* performing tests */
-                S_SERVER_IDLE       /* waiting for client */
-        } server_state_t;
+	/* not used yet */
+	typedef enum {
+		S_SERVER_REGISTER,  /* registering server with DIF */
+		S_SERVER_NEGOTIATE, /* negotiating test parameters */
+		S_SERVER_TEST,	    /* performing tests */
+		S_SERVER_IDLE	    /* waiting for client */
+	} server_state_t;
 
 private:
 
 /* internal state */
 
-        unsigned int stat_interval ; /* interval to report stats (ms) */
-        /* std::string log_fn; logfile name */
+	unsigned int stat_interval ; /* interval to report stats (ms) */
+	/* std::string log_fn; logfile name */
 
 /* internal functions */
 
-        /* respond to a new flow */
-        void handle_flow(int port_id);
+	/* respond to a new flow */
+	void handle_flow(int port_id);
 };
 
 #endif
