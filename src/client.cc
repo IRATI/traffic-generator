@@ -113,7 +113,7 @@ void client::single_cbr_test(unsigned int size,
 
 	long us = ts_diff_us(&start, &end);
 	LOG_INFO("sent statistics: %9llu SDUs, %12llu bytes in %9ld us, %4.4f Mb/s",
-		 seq, seq * size, us,(seq*size * 8.0)/us);
+		 seq, seq * size, us, (seq*size * 8.0)/us);
 }
 
 void client::single_poisson_test(unsigned int size,
@@ -169,7 +169,7 @@ void client::single_poisson_test(unsigned int size,
 
 	long us = ts_diff_us(&start, &end);
 	LOG_INFO("sent statistics: %9llu SDUs, %12llu bytes in %9ld us, %4.4f Mb/s",
-		 seq, seq * size, us,(seq*size * 8.0)/us);
+		 seq, seq * size, us, (seq*size * 8.0)/us);
 }
 /* obsolete until we have non-blocking I/O
    void client::receive_server_stats(int port_id)
