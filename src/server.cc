@@ -175,10 +175,8 @@ void server::handle_flow(int port_id)
 		   ipcManager->writeSDU(port_id, statistics, sizeof(statistics) + 64);
 		*/
 
-		LOG_INFO("Port %4d: %9llu SDUs, %12llu bytes in %9ld ms",
-			 port_id, sdus, bytes_read, ms);
-		LOG_INFO("=> %4.4f Mb/s",
-			 static_cast<float>((bytes_read * 8.0) / (ms * 1000)));
+		LOG_INFO("Port %4d: %9llu SDUs, %12llu bytes in %9ld ms, %4.4f Mb/s",
+			 port_id, sdus, bytes_read, ms, (bytes_read * 8.0) / (ms * 1000));
 	} catch (IPCException& ex) {
 	}
 }
