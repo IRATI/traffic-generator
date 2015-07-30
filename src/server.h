@@ -28,8 +28,8 @@ server(const std::string& apn,
 		stat_interval(0) {}
 
 	void run();
-	void configure(unsigned int stat_interval);
-	/* void set_log(string& log_fn); */
+	void set_interval(unsigned int stat_interval);
+	void set_output_path(string& path);
 
 protected:
 	/* not used yet */
@@ -45,7 +45,7 @@ private:
 /* internal state */
 
 	unsigned int stat_interval ; /* interval to report stats (ms) */
-	/* std::string log_fn; logfile name */
+	string output_path; /* path to output files, empty for no output */
 
 /* internal functions */
 
