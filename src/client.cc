@@ -112,10 +112,8 @@ void client::single_cbr_test(unsigned int size,
 	clock_gettime(CLOCK_REALTIME, &end);
 
 	long us = ts_diff_us(&start, &end);
-	LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %ld us",
-		 seq, seq * size, us);
-	LOG_INFO("\t=> %.4f Mb/s",
-		 static_cast<float>((seq*size * 8.0)/(us)));
+	LOG_INFO("sent statistics: %9llu SDUs, %12llu bytes in %9ld us, %4.4f Mb/s",
+		 seq, seq * size, us, (seq*size * 8.0)/us);
 }
 
 void client::single_poisson_test(unsigned int size,
@@ -170,10 +168,8 @@ void client::single_poisson_test(unsigned int size,
 	clock_gettime(CLOCK_REALTIME, &end);
 
 	long us = ts_diff_us(&start, &end);
-	LOG_INFO("sent statistics: %llu SDUs, %llu bytes in %ld us",
-		 seq, seq * size, us);
-	LOG_INFO("\t=> %.4f Mb/s",
-		 static_cast<float>((seq*size * 8.0)/us));
+	LOG_INFO("sent statistics: %9llu SDUs, %12llu bytes in %9ld us, %4.4f Mb/s",
+		 seq, seq * size, us, (seq*size * 8.0)/us);
 }
 /* obsolete until we have non-blocking I/O
    void client::receive_server_stats(int port_id)

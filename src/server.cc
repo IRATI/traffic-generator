@@ -147,7 +147,8 @@ void server::handle_flow(int port_id)
 				stop = true;
 			if (stat_interval && (stop || ts_diff_us(&now, &iv_end) < 0)) {
 				int us = ts_diff_us(&iv_start, &now);
-				LOG_INFO("%llu SDUs (%llu bytes) in %lu us => %.4f p/s,	 %.4f Mb/s",
+				LOG_INFO("Port %4d: %9llu SDUs (%12llu bytes) in %12lu us => %9.4f p/s, %4.4f Mb/s",
+					 port_id,
 					 sdus-sdus_intv,
 					 bytes_read-bytes_read_intv,
 					 us,
@@ -174,8 +175,8 @@ void server::handle_flow(int port_id)
 		   ipcManager->writeSDU(port_id, statistics, sizeof(statistics) + 64);
 		*/
 
-		LOG_INFO("Result: %llu SDUs, %llu bytes in %ld ms", sdus, bytes_read, ms);
-		LOG_INFO("\t=> %.4f Mb/s", static_cast<float>((bytes_read * 8.0) / (ms * 1000)));
+		LOG_INFO("Port %4d: %9llu SDUs, %12llu bytes in %9ld ms, %4.4f Mb/s",
+			 port_id, sdus, bytes_read, ms, (bytes_read * 8.0) / (ms * 1000));
 	} catch (IPCException& ex) {
 	}
 }
