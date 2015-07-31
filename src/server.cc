@@ -190,7 +190,7 @@ void server::handle_flow(int port_id)
 				stop = true;
 			if (stat_interval && (stop || ts_diff_us(&now, &iv_end) < 0)) {
 				int us = ts_diff_us(&iv_start, &now);
-				LOG_INFO("Port %4d: %9llu SDUs (%12llu bytes) in %12lu us => %9.4f p/s, %4.4f Mb/s",
+				LOG_INFO("Port %4d: %9llu SDUs (%12llu bytes) in %12lu us => %9.4f p/s, %9.4f Mb/s",
 					 port_id,
 					 sdus-sdus_intv,
 					 bytes_read-bytes_read_intv,
