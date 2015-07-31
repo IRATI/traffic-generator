@@ -137,7 +137,7 @@ void server::handle_flow(int port_id)
 
 	LOG_INFO("Starting test from client %s on port-id %lu", client_apn_api.c_str(), port_id);
 	LOG_INFO("Duration: %u s, count: %llu sdus, sdu size: %u bytes, reporting interval: %u ms",
-		 duration, count, sdu_size, stat_interval);
+		 duration/1000, count, sdu_size, stat_interval);
 
         /* to be removed when tgen supports non-blocking I/O */
 	if (timed_test && !csv_fn.empty()) {
@@ -167,19 +167,18 @@ void server::handle_flow(int port_id)
 		ofs << "interval (s), # sdu's, #bytes, packet rate (p/s), bitrate (Mb/s)" << endl;
 	}
 
-	/* set reporting interval */
-	intv.tv_sec = stat_interval/1000;
-	intv.tv_nsec = (stat_interval%1000)*MILLION;
-
 	clock_gettime(CLOCK_REALTIME, &start);
-	clock_gettime(CLOCK_REALTIME, &iv_start);
 	if (timed_test) {
 		intv.tv_sec = duration;
 		ts_add(&start, &intv, &end);
 		if (!count)
 			count=(unsigned long long) -1LL;
 	}
+	/* set reporting interval */
+	intv.tv_sec = stat_interval/1000;
+	intv.tv_nsec = (stat_interval%1000)*MILLION;
 	ts_add(&start, &intv, &iv_end); /* next deadline for reporting */
+	clock_gettime(CLOCK_REALTIME, &iv_start);
 	try {
 		while (!stop) {
 			clock_gettime(CLOCK_REALTIME, &now);
