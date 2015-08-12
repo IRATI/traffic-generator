@@ -93,11 +93,16 @@ AS_IF([test "$want_debug" = "yes"],[
     ])
 ])
 
-AX_BOOST_BASE([1.55],,[
-    AC_MSG_ERROR([Your system lacks of boost support])
-])
-AX_BOOST_THREAD
-AX_BOOST_SYSTEM
+BOOST_REQUIRE([1.55], [HAVE_BOOST=false])
+if (test "$HAVE_BOOST" = "false"); then
+  AC_MSG_ERROR("Traffic generator requires Boost >= 1.55")
+fi
+
+BOOST_THREAD()
+BOOST_SYSTEM()
+CPPFLAGS+=" $BOOST_CPPFLAGS"
+LDFLAGS+=" $BOOST_SYSTEM_LDFLAGS $BOOST_THREAD_LDFLAGS"
+LIBS+=" $BOOST_SYSTEM_LIBS $BOOST_THREAD_LIBS"
 
 AC_SUBST(CPPFLAGS_EXTRA, $CPPFLAGS_EXTRA)
 AC_SUBST(CXXFLAGS_EXTRA, $CXXFLAGS_EXTRA)
