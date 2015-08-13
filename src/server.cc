@@ -90,7 +90,7 @@ void server::handle_flow(int port_id)
 {
 	/* negotiate test with client */
 	unsigned long long count;
-	unsigned int	   duration;
+	unsigned int	   duration; /* it arrives in ms */
 	unsigned int	   sdu_size;
 
 	/* FIXME: clean up this junk ---> */
@@ -169,7 +169,7 @@ void server::handle_flow(int port_id)
 
 	clock_gettime(CLOCK_REALTIME, &start);
 	if (timed_test) {
-		intv.tv_sec = duration;
+		intv.tv_sec = duration/1000; /* tv_sec expects seconds */
 		ts_add(&start, &intv, &end);
 		if (!count)
 			count=(unsigned long long) -1LL;
