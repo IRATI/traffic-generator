@@ -41,6 +41,7 @@ int main(int argc, char * argv[])
 	static std::string	  dif_name;
 	static std::string	  distribution_type;
 	static std::string	  qos_cube;
+	static std::string        csv_path;
 	static double		  poisson_mean;
 
 	try {
@@ -127,7 +128,7 @@ int main(int argc, char * argv[])
 			"string");
 		TCLAP::ValueArg<std::string> distributionArg(
 			"",
-			"distribution",
+ 			"distribution",
 			"Distribution type: CBR, poisson",
 			false,
 			"CBR",
@@ -148,10 +149,18 @@ int main(int argc, char * argv[])
 			false,
 			1000,
 			"unsigned integer");
-		TCLAP::SwitchArg sleepArg("",
-					  "sleep",
-					  "sleep instead of busywait between sending SDUs",
-					  false);
+		TCLAP::SwitchArg sleepArg(
+			"",
+			"sleep",
+			"sleep instead of busywait between sending SDUs",
+			false);
+		TCLAP::ValueArg<std::string> csvPathArg(
+			"o",
+			"output-path",
+			"Write csv files per client to the specified directory",
+			false,
+			"",
+			"string");
 
 		cmd.add(sleepArg);
 		cmd.add(registrationArg);
@@ -169,7 +178,7 @@ int main(int argc, char * argv[])
 		cmd.add(countArg);
 		cmd.add(intervalArg);
 		cmd.add(listenArg);
-
+		cmd.add(csvPathArg);
 		cmd.parse(argc, argv);
 
 		listen		  = listenArg.getValue();
@@ -188,6 +197,7 @@ int main(int argc, char * argv[])
 		interval	  = intervalArg.getValue();
 		busy		  = !sleepArg.getValue();
 		poisson_mean	  = poissonMeanArg.getValue();
+		csv_path          = csvPathArg.getValue();
 
 	} catch (TCLAP::ArgException &e) {
 		LOG_ERR("Error: %s for arg %d",
@@ -203,7 +213,8 @@ int main(int argc, char * argv[])
 		if (listen) {
 			// Server mode
 			server s(server_apn, server_api);
-			s.configure(interval);
+			s.set_interval(interval);
+			s.set_output_path(csv_path);
 			s.register_ap(dif_name);
 			s.run();
 		} else {
