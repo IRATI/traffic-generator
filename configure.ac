@@ -54,15 +54,6 @@ AX_CHECK_COMPILE_FLAG([ -Wall ], [
 AX_CHECK_COMPILE_FLAG([ -Wformat ], [
     CPPFLAGS_EXTRA="$CPPFLAGS_EXTRA -Wformat"
 ])
-AX_CHECK_COMPILE_FLAG([ -Wnon-virtual-dtor ], [
-    CPPFLAGS_EXTRA="$CPPFLAGS_EXTRA -Wnon-virtual-dtor"
-])
-AX_CHECK_COMPILE_FLAG([ -Woverloaded-virtual ], [
-    CPPFLAGS_EXTRA="$CPPFLAGS_EXTRA -Woverloaded-virtual"
-])
-AX_CHECK_COMPILE_FLAG([ -Wextra ], [
-    CPPFLAGS_EXTRA="$CPPFLAGS_EXTRA -Wextra"
-])
 AX_CHECK_COMPILE_FLAG([ -Werror ], [
     CPPFLAGS_EXTRA="$CPPFLAGS_EXTRA -Werror"
 ])
