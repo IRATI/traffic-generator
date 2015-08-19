@@ -49,115 +49,113 @@ int main(int argc, char * argv[])
 		TCLAP::SwitchArg listenArg(
 			"l",
 			"listen",
-			"Run in server (consumer) mode",
+			"Run in server (consumer) mode, default = client.",
 			false);
 		TCLAP::ValueArg<std::string> difArg(
 			"d",
 			"dif",
-			"The name of the DIF to use (empty means 'any DIF')",
+			"The name of the DIF to use, empty for any DIF, default = empty (any DIF).",
 			false,
 			"",
 			"string");
 		TCLAP::ValueArg<std::string> serverApnArg(
 			"",
 			"server-apn",
-			"Application process name for the server",
+			"Application process name for the server, default = traffic.generator.server.",
 			false,
 			"traffic.generator.server",
 			"string");
 		TCLAP::ValueArg<std::string> serverApiArg(
 			"",
 			"server-api",
-			"Application process instance for the server",
+			"Application process instance for the server, default = 1.",
 			false,
 			"1",
 			"string");
 		TCLAP::ValueArg<std::string> clientApnArg(
 			"",
 			"client-apn",
-			"Application process name for the client",
+			"Application process name for the client, default = traffic.generator.client.",
 			false,
 			"traffic.generator.client",
 			"string");
 		TCLAP::ValueArg<std::string> clientApiArg(
 			"",
 			"client-api",
-			"Application process instance for the client",
+			"Application process instance for the client, default = 1.",
 			false,
 			"1",
 			"string");
 		TCLAP::SwitchArg registrationArg(
 			"r",
 			"register",
-			"Register the application with the DIF",
+			"Register the application with the DIF, default = false.",
 			false);
 		TCLAP::ValueArg<unsigned int> sizeArg(
 			"s",
 			"size",
-			"Size of the SDUs to send (bytes)",
+			"Size of the SDUs to send (bytes), default = 500.",
 			false,
 			500,
 			"unsigned integer");
 		TCLAP::ValueArg<unsigned long long> countArg(
 			"c",
 			"count",
-			"Number of SDUs to send, 0 = unlimited",
+			"Number of SDUs to send, 0 = unlimited, default = unlimited.",
 			false,
 			0,
 			"unsigned integer");
 		TCLAP::ValueArg<unsigned int> durationArg(
 			"",
 			"duration",
-			"Duration of the test (seconds), 0 = unlimited",
+			"Duration of the test (seconds), 0 = unlimited, default = 60 s IF count is unlimited.",
 			false,
 			0,
 			"unsigned integer");
 		TCLAP::ValueArg<unsigned int> rateArg(
 			"",
 			"rate",
-			"Bitrate to send the SDUs, in kb/s, 0 = no limit",
+			"Bitrate to send the SDUs, in kb/s, 0 = no limit, default = no limit.",
 			false,
 			0,
 			"unsigned integer");
 		TCLAP::ValueArg<std::string> qoscubeArg(
 			"",
 			"qoscube",
-			"Specify the qos cube to use for flow allocation",
+			"Specify the qos cube to use for flow allocation, default = unreliable.",
 			false,
 			"unreliable",
 			"string");
 		TCLAP::ValueArg<std::string> distributionArg(
 			"",
  			"distribution",
-			"Distribution type: CBR, poisson",
+			"Distribution type: CBR, poisson, default = CBR.",
 			false,
 			"CBR",
 			"string");
 		TCLAP::ValueArg<double> poissonMeanArg(
 			"",
 			"poissonmean",
-			"The mean value for the poisson distribution "
-			"used to generate interarrival times, "
-			"default is 1.",
+			"The mean value for the poisson distribution used to generate interarrival times, default is 1.0.",
 			false,
 			1,
 			"double");
 		TCLAP::ValueArg<unsigned int> intervalArg(
 			"",
 			"interval",
-			"report statistics every x ms (server)",
+			"report statistics every x ms (server), default = 1000.",
 			false,
 			1000,
 			"unsigned integer");
 		TCLAP::SwitchArg sleepArg(
 			"",
 			"sleep",
-			"sleep instead of busywait between sending SDUs",
+			"sleep instead of busywait between sending SDUs, default = false.",
 			false);
 		TCLAP::ValueArg<std::string> csvPathArg(
 			"o",
 			"output-path",
-			"Write csv files per client to the specified directory",
+			"Write csv files per client to the specified directory, default = no csv output.",
 			false,
 			"",
 			"string");
