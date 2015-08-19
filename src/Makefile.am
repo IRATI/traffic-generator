@@ -17,10 +17,7 @@ rina_tgen_SOURCES  =				\
         main.cc
 
 rina_tgen_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt			\
-		     $(BOOST_LDFLAGS)		\
-		     $(BOOST_THREAD_LIB)	\
-		     $(BOOST_SYSTEM_LIB)
+		     -lrt 
 
 rina_tgen_CPPFLAGS =				\
 	$(LIBRINA_CFLAGS)			\

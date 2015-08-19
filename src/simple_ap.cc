@@ -92,7 +92,6 @@ void simple_ap::unregister_ap()
 /* FIXME: implement this stub */
 void simple_ap::unregister_ap(const string& dif_name)
 {
-	(void) dif_name;
 }
 
 void simple_ap::unregister_ap(const vector<string>& dif_names)
