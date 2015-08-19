@@ -108,9 +108,9 @@ int main(int argc, char * argv[])
 		TCLAP::ValueArg<unsigned int> durationArg(
 			"",
 			"duration",
-			"Duration of the test (seconds), 0 = unlimited, default = 60 s",
+			"Duration of the test (seconds), 0 = unlimited, default = 60 s IF count is unlimited",
 			false,
-			60,
+			0,
 			"unsigned integer");
 		TCLAP::ValueArg<unsigned int> rateArg(
 			"",
