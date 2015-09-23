@@ -72,7 +72,6 @@ void client::single_cbr_test(unsigned int size,
 	unsigned long long seq = 0;
 	struct timespec start;
 	struct timespec end;
-	struct timespec deadline;
 	bool stop = 0;
 	double byterate;
 	double interval_time = 0;
@@ -86,6 +85,55 @@ void client::single_cbr_test(unsigned int size,
 		interval_time = size / byterate; /* ms */
 	}
 
+	clock_gettime(CLOCK_REALTIME, &start);
+	struct timespec next = start;
+	while (!stop) {
+		memcpy(to_send, &seq, sizeof(seq));
+		ipcManager->writeSDU(port_id, to_send, size);
+		long nanos = interval_time * MILLION;
+		struct timespec interval = {nanos / BILLION, nanos % BILLION};
+		ts_add(&next,&interval,&next);
+		if (busy)
+			busy_wait_until(next);
+		else
+			sleep_until(next);
+		seq++;
+		clock_gettime(CLOCK_REALTIME, &end);
+		if (duration != 0 && ts_diff_ms(&start, &end) >= (long) duration)
+			stop = 1;
+		if (count != 0 && seq >= count)
+			stop = 1;
+	}
+	clock_gettime(CLOCK_REALTIME, &end);
+
+	long us = ts_diff_us(&start, &end);
+	LOG_INFO("sent statistics: %9llu SDUs, %12llu bytes in %9ld us, %4.4f Mb/s",
+		 seq, seq * size, us, (seq*size * 8.0)/us);
+}
+
+void client::single_cbrc_test(unsigned int size,
+			      unsigned long long count,
+			      unsigned int duration, /* ms */
+			      unsigned int rate,
+			      bool busy,
+			      int port_id)
+{
+	unsigned long long seq = 0;
+	struct timespec start;
+	struct timespec end;
+	struct timespec deadline;
+	bool stop = 0;
+	double byterate;
+	double interval_time = 0;
+	char to_send[size];
+
+	if (negotiate_test(count, duration, size, port_id) < 0)
+		return;
+
+	if (rate) {
+		byterate = rate / 8.0; /*kB/s */
+		interval_time = size / byterate; /* ms */
+	}
 	clock_gettime(CLOCK_REALTIME, &start);
 	while (!stop) {
 		memcpy(to_send, &seq, sizeof(seq));
@@ -107,7 +155,7 @@ void client::single_cbr_test(unsigned int size,
 		if (duration && ts_diff_ms(&start, &end) >= (long) duration)
 			stop = true;
 		if (!duration && count && seq >= count)
-			stop = true;
+		stop = true;
 	}
 	clock_gettime(CLOCK_REALTIME, &end);
 
@@ -115,6 +163,7 @@ void client::single_cbr_test(unsigned int size,
 	LOG_INFO("sent statistics: %9llu SDUs, %12llu bytes in %9ld us, %4.4f Mb/s",
 		 seq, seq * size, us, (seq*size * 8.0)/us);
 }
+
 
 void client::single_poisson_test(unsigned int size,
 				 unsigned long long count,

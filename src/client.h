@@ -32,6 +32,12 @@ client(const std::string& apn,
 			     unsigned int rate,
 			     bool busy,
 			     int port_id);
+	void single_cbrc_test(unsigned int size,
+			     unsigned long long count,
+			     unsigned int duration, /* ms */
+			     unsigned int rate,
+			     bool busy,
+			     int port_id);
 
 	void single_poisson_test(unsigned int size,
 				 unsigned long long count,
