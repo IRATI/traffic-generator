@@ -1,5 +1,33 @@
-Installation Instructions
-*************************
+Quick Installation Instructions
+*******************************
+
+# dependencies: librina, BOOST C++ libraries >= 1.55
+
+# you may need to point to librina libraries
+
+export PKG_CONFIG_PATH=/path/to/rina/lib/pkgconfig 
+
+# bootstrap the build
+
+./bootstrap
+
+# use the --prefix option of configure if you want to install the traffic 
+# generator in a RINA user space sandbox (recommended)
+
+./configure --prefix=/path/to/rina/
+
+# compile rina-tgen
+
+make
+
+# install in your system
+
+make install
+
+----------------------------------
+
+Detailed Installation Instructions
+**********************************
 
 Copyright (C) 1994-1996, 1999-2002, 2004-2011 Free Software Foundation,
 Inc.
