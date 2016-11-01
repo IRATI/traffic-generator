@@ -31,13 +31,13 @@ client(const std::string& apn,
 			     unsigned int duration, /* ms */
 			     unsigned int rate,
 			     bool busy,
-			     int port_id);
+			     int fd);
 	void single_cbrc_test(unsigned int size,
 			     unsigned long long count,
 			     unsigned int duration, /* ms */
 			     unsigned int rate,
 			     bool busy,
-			     int port_id);
+			     int fd);
 
 	void single_poisson_test(unsigned int size,
 				 unsigned long long count,
@@ -45,18 +45,18 @@ client(const std::string& apn,
 				 unsigned int rate,
 				 bool busy,
 				 double poisson_mean,
-				 int port_id);
+				 int fd);
 
 protected:
 
-	int negotiate_test(int port_id);
+	int negotiate_test(int fd);
 
-	void cbr_flow(int port_id);
-	void poisson_flow(int port_id);
+	void cbr_flow(int fd);
+	void poisson_flow(int fd);
 
-	void receiveServerStats(int port_id);
+	void receiveServerStats(int fd);
 private:
-	int negotiate_test (long long count, int duration, int sdu_size, int port_id);
+	int negotiate_test (long long count, int duration, int sdu_size, int fd);
 	void busy_wait_until (const struct timespec &deadline);
 	void sleep_until(const struct timespec &deadline);
 };

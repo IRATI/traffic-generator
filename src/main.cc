@@ -238,9 +238,9 @@ int main(int argc, char * argv[])
 			/* FIXME: "" means any DIF, should be cleaned up */
 			if (registration)
 				c.register_ap(dif_name);
-			int port_id = c.request_flow(server_apn,
-						     server_api,
-						     qos_cube);
+			int fd = c.request_flow(server_apn,
+						server_api,
+						qos_cube);
 			if (distribution_type == "CBR" ||
 			    distribution_type == "cbr")
 				c.single_cbr_test(size,
@@ -248,7 +248,7 @@ int main(int argc, char * argv[])
 						  duration*1000,
 						  rate,
 						  busy,
-						  port_id);
+						  fd);
 			if (distribution_type == "CBRC" ||
 			    distribution_type == "cbrc")
 				c.single_cbrc_test(size,
@@ -256,7 +256,7 @@ int main(int argc, char * argv[])
 						   duration*1000,
 						   rate,
 						   busy,
-						   port_id);
+						   fd);
 			if (distribution_type == "poisson")
 				c.single_poisson_test(size,
 						      count,
@@ -264,7 +264,7 @@ int main(int argc, char * argv[])
 						      rate,
 						      busy,
 						      poisson_mean,
-						      port_id);
+						      fd);
 		}
 	} catch (rina::Exception& e) {
 		LOG_ERR("%s", e.what());

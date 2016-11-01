@@ -16,6 +16,7 @@
 #include <endian.h>
 #include <sstream>
 #include <fstream>
+#include <errno.h>
 
 #include <iostream>
 #include <boost/thread.hpp>
@@ -68,7 +69,7 @@ void server::run()
 			rina::FlowInformation flow = ipcManager->allocateFlowResponse(
 				*dynamic_cast<FlowRequestEvent*>(event), 0, true);
 			LOG_INFO("New flow allocated [port-id = %d]", flow.portId);
-			boost::thread t(&server::handle_flow, this, flow.portId);
+			boost::thread t(&server::handle_flow, this, flow.portId, flow.fd);
 			t.detach();
 			break;
 		}
@@ -86,7 +87,7 @@ void server::run()
 	}
 }
 
-void server::handle_flow(int port_id)
+void server::handle_flow(int port_id, int fd)
 {
 	/* negotiate test with client */
 	unsigned long long count;
@@ -96,10 +97,14 @@ void server::handle_flow(int port_id)
 	/* FIXME: clean up this junk ---> */
 	/* receive test parameters from client */
 	char initData[sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32];
+        int ret;
 
-	ipcManager->readSDU(port_id,
-			    initData,
-			    sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32);
+	ret = read(fd, initData,
+		   sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32);
+        if (ret < 0) {
+                LOG_ERR("read() failed: %s", strerror(errno));
+                return;
+        }
 
 	memcpy(&count, initData, sizeof(count));
 	memcpy(&duration, &initData[sizeof(count)], sizeof(duration));
@@ -112,7 +117,11 @@ void server::handle_flow(int port_id)
 	char response[] = "Go ahead!						   ";
 	struct timespec start;
 
-	ipcManager->writeSDU(port_id, response, sizeof(response));
+	ret = write(fd, response, sizeof(response));
+        if (ret != (int)sizeof(response)) {
+                LOG_ERR("write() failed: %s", strerror(errno));
+                return;
+        }
 
 	/* <--- FIXME */
 
@@ -179,55 +188,58 @@ void server::handle_flow(int port_id)
 	intv.tv_nsec = (stat_interval%1000)*MILLION;
 	ts_add(&start, &intv, &iv_end); /* next deadline for reporting */
 	clock_gettime(CLOCK_REALTIME, &iv_start);
-	try {
-		while (!stop) {
-			clock_gettime(CLOCK_REALTIME, &now);
-			bytes_read +=  ipcManager->readSDU(port_id, data, sdu_size);
-			sdus++;
-			if (!timed_test && sdus >= count)
-				stop = true;
-			if (timed_test && (sdus >= count || ts_diff_us(&now,&end) < 0))
-				stop = true;
-			if (stat_interval && (stop || ts_diff_us(&now, &iv_end) < 0)) {
-				int us = ts_diff_us(&iv_start, &now);
-				LOG_INFO("Port %4d: %9llu SDUs (%12llu bytes) in %12lu us => %9.4f p/s, %9.4f Mb/s",
-					 port_id,
-					 sdus-sdus_intv,
-					 bytes_read-bytes_read_intv,
-					 us,
-					 ((sdus-sdus_intv) / (float) us) * MILLION,
-					 8 * (bytes_read-bytes_read_intv) / (float)us);
-				if (!csv_fn.empty()) /* write to output file */
-					ofs << us << ","
-					    << sdus-sdus_intv << ","
-					    << bytes_read-bytes_read_intv << ","
-					    << ((sdus-sdus_intv) / (float) us) * MILLION << ","
-					    << 8 * (bytes_read-bytes_read_intv) / (float)us << endl;
-				iv_start=iv_end;
-				sdus_intv = sdus;
-				bytes_read_intv = bytes_read;
-				ts_add(&iv_start, &intv, &iv_end); /* end time for next interval */
-			}
-		}
-		clock_gettime(CLOCK_REALTIME, &end);
-		long ms = ts_diff_ms(&start, &end);
-		/* FIXME: removed until we have non-blocking readSDU()
-		   unsigned int nms = htobe32(ms);
-		   unsigned long long ncount = htobe64(totalSdus);
-		   unsigned long long nbytes = htobe64(totalBytes);
+        while (!stop) {
+                int ret;
+                clock_gettime(CLOCK_REALTIME, &now);
+                ret = read(fd, data, sdu_size);
+                if (ret < 0) {
+                        LOG_ERR("read() failed: %s", strerror(errno));
+                        return;
+                }
+                bytes_read += ret;
+                sdus++;
+                if (!timed_test && sdus >= count)
+                        stop = true;
+                if (timed_test && (sdus >= count || ts_diff_us(&now,&end) < 0))
+                        stop = true;
+                if (stat_interval && (stop || ts_diff_us(&now, &iv_end) < 0)) {
+                        int us = ts_diff_us(&iv_start, &now);
+                        LOG_INFO("Port %4d: %9llu SDUs (%12llu bytes) in %12lu us => %9.4f p/s, %9.4f Mb/s",
+                                 port_id,
+                                 sdus-sdus_intv,
+                                 bytes_read-bytes_read_intv,
+                                 us,
+                                 ((sdus-sdus_intv) / (float) us) * MILLION,
+                                 8 * (bytes_read-bytes_read_intv) / (float)us);
+                        if (!csv_fn.empty()) /* write to output file */
+                                ofs << us << ","
+                                    << sdus-sdus_intv << ","
+                                    << bytes_read-bytes_read_intv << ","
+                                    << ((sdus-sdus_intv) / (float) us) * MILLION << ","
+                                    << 8 * (bytes_read-bytes_read_intv) / (float)us << endl;
+                        iv_start=iv_end;
+                        sdus_intv = sdus;
+                        bytes_read_intv = bytes_read;
+                        ts_add(&iv_start, &intv, &iv_end); /* end time for next interval */
+                }
+        }
+        clock_gettime(CLOCK_REALTIME, &end);
+        long ms = ts_diff_ms(&start, &end);
+        /* FIXME: removed until we have non-blocking read()
+           unsigned int nms = htobe32(ms);
+           unsigned long long ncount = htobe64(totalSdus);
+           unsigned long long nbytes = htobe64(totalBytes);
 
-		   char statistics[sizeof(ncount) + sizeof(nbytes) + sizeof(nms) + 64];
-		   memcpy(statistics, &ncount, sizeof(ncount));
-		   memcpy(&statistics[sizeof(ncount)], &nbytes, sizeof(nbytes));
-		   memcpy(&statistics[sizeof(ncount) + sizeof(nbytes)], &nms, sizeof(nms));
+           char statistics[sizeof(ncount) + sizeof(nbytes) + sizeof(nms) + 64];
+           memcpy(statistics, &ncount, sizeof(ncount));
+           memcpy(&statistics[sizeof(ncount)], &nbytes, sizeof(nbytes));
+           memcpy(&statistics[sizeof(ncount) + sizeof(nbytes)], &nms, sizeof(nms));
 
-		   ipcManager->writeSDU(port_id, statistics, sizeof(statistics) + 64);
-		*/
+           write(fd, statistics, sizeof(statistics) + 64);
+        */
 
-		LOG_INFO("Port %4d: %9llu SDUs, %12llu bytes in %9ld ms, %4.4f Mb/s",
-			 port_id, sdus, bytes_read, ms, (bytes_read * 8.0) / (ms * 1000));
-		if (ofs.is_open())
-			ofs.close();
-	} catch (IPCException& ex) {
-	}
+        LOG_INFO("Port %4d: %9llu SDUs, %12llu bytes in %9ld ms, %4.4f Mb/s",
+                 port_id, sdus, bytes_read, ms, (bytes_read * 8.0) / (ms * 1000));
+        if (ofs.is_open())
+                ofs.close();
 }

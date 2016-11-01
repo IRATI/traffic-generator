@@ -16,6 +16,7 @@
 #include <string.h>
 #include <endian.h>
 #include <ctime>
+#include <errno.h>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/poisson_distribution.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -31,11 +32,14 @@ using namespace std;
 using namespace rina;
 
 /* this needs to be redesigned, we need test templates */
-int client::negotiate_test(long long count, int duration, int sdu_size, int port_id)
+int client::negotiate_test(long long count, int duration,
+                           int sdu_size, int fd)
 {
 	//TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
 	//when using the shim DIF over Ethernet directly
 	char init_data[sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32];
+        int sz = sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32;
+        int ret;
 
 	unsigned long long ncount = htobe64(count);
 	unsigned int ndur = htobe32(duration);
@@ -45,14 +49,21 @@ int client::negotiate_test(long long count, int duration, int sdu_size, int port
 	memcpy(&init_data[sizeof(ncount)], &ndur, sizeof(ndur));
 	memcpy(&init_data[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
-	ipcManager->writeSDU(port_id, init_data,
-			     sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32);
+	ret = write(fd, init_data, sz);
+        if (ret != sz) {
+                LOG_ERR("write() failed: %s", strerror(errno));
+                return -1;
+        }
 
 	char response[128];
 	response[127] = '\0';
-	ipcManager->readSDU(port_id, response, 127);
+        ret = read(fd, response, 127);
+        if (ret < 0) {
+                LOG_ERR("read() failed: %s", strerror(errno));
+                return -1;
+        }
 	LOG_INFO("starting test");
-	return 0; //ALL IS WELL
+	return 0; //ALL IS GOOD
 }
 
 /* needs common code extracted and function ptrs to
@@ -67,7 +78,7 @@ void client::single_cbr_test(unsigned int size,
 			     unsigned int duration, /* ms */
 			     unsigned int rate,
 			     bool busy,
-			     int port_id)
+			     int fd)
 {
 	unsigned long long seq = 0;
 	struct timespec start;
@@ -77,7 +88,7 @@ void client::single_cbr_test(unsigned int size,
 	double interval_time = 0;
 	char to_send[size];
 
-	if (negotiate_test(count, duration, size, port_id) < 0)
+	if (negotiate_test(count, duration, size, fd) < 0)
 		return;
 
 	if (rate) {
@@ -88,8 +99,14 @@ void client::single_cbr_test(unsigned int size,
 	clock_gettime(CLOCK_REALTIME, &start);
 	struct timespec next = start;
 	while (!stop) {
+                int ret;
+
 		memcpy(to_send, &seq, sizeof(seq));
-		ipcManager->writeSDU(port_id, to_send, size);
+		ret = write(fd, to_send, size);
+                if (ret != (int)size) {
+                        LOG_ERR("write() failed: %s", strerror(errno));
+                        break;
+                }
 		long nanos = interval_time * MILLION;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		ts_add(&next,&interval,&next);
@@ -116,7 +133,7 @@ void client::single_cbrc_test(unsigned int size,
 			      unsigned int duration, /* ms */
 			      unsigned int rate,
 			      bool busy,
-			      int port_id)
+			      int fd)
 {
 	unsigned long long seq = 0;
 	struct timespec start;
@@ -127,7 +144,7 @@ void client::single_cbrc_test(unsigned int size,
 	double interval_time = 0;
 	char to_send[size];
 
-	if (negotiate_test(count, duration, size, port_id) < 0)
+	if (negotiate_test(count, duration, size, fd) < 0)
 		return;
 
 	if (rate) {
@@ -136,8 +153,13 @@ void client::single_cbrc_test(unsigned int size,
 	}
 	clock_gettime(CLOCK_REALTIME, &start);
 	while (!stop) {
+                int ret;
 		memcpy(to_send, &seq, sizeof(seq));
-		ipcManager->writeSDU(port_id, to_send, size);
+		ret = write(fd, to_send, size);
+                if (ret != (int)size) {
+                        LOG_ERR("write() failed: %s", strerror(errno));
+                        break;
+                }
 		long nanos = seq*interval_time*MILLION;
 		int seconds = 0;
 		while (nanos > BILLION) {
@@ -171,7 +193,7 @@ void client::single_poisson_test(unsigned int size,
 				 unsigned int rate, /* b/s */
 				 bool busy,
 				 double poisson_mean,
-				 int port_id)
+				 int fd)
 {
 	unsigned long long seq = 0;
 	struct timespec	   start;
@@ -181,7 +203,7 @@ void client::single_poisson_test(unsigned int size,
 	double		   byterate; /* B/ms */
 	char		   to_send[size];
 
-	if (negotiate_test(count, duration, size, port_id) < 0)
+	if (negotiate_test(count, duration, size, fd) < 0)
 		return;
 
 	if (rate) {
@@ -198,8 +220,13 @@ void client::single_poisson_test(unsigned int size,
 	clock_gettime(CLOCK_REALTIME, &start);
 	struct timespec next = start;
 	while (!stop) {
+                int ret;
 		memcpy(to_send, &seq, sizeof(seq));
-		ipcManager->writeSDU(port_id, to_send, size);
+		ret = write(fd, to_send, size);
+                if (ret != (int)size) {
+                        LOG_ERR("write() failed: %s", strerror(errno));
+                        break;
+                }
 		long nanos = rvt()*MILLION/poisson_mean*interval_time;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		ts_add(&next,&interval,&next);
@@ -221,14 +248,14 @@ void client::single_poisson_test(unsigned int size,
 		 seq, seq * size, us, (seq*size * 8.0)/us);
 }
 /* obsolete until we have non-blocking I/O
-   void client::receive_server_stats(int port_id)
+   void client::receive_server_stats(int fd)
    {
    char response[128];
    unsigned long long totalBytes;
    unsigned long long sduCount;
    unsigned int ms;
 
-   ipcManager->readSDU(port_id, response, 128);
+   read(fd, response, 128);
    memcpy(&sduCount, response, sizeof(sduCount));
    memcpy(&totalBytes, &response[sizeof(sduCount)], sizeof(totalBytes));
    memcpy(&ms, &response[sizeof(sduCount) + sizeof(totalBytes)], sizeof(ms));

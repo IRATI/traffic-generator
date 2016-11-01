@@ -143,7 +143,7 @@ int simple_ap::request_flow(const std::string& apn,
 		return 0;
 	} else
 		LOG_DBG("Port id = %d", flow.portId);
-	return flow.portId;
+	return flow.fd;
 }
 
 /* FIXME: resolution of qos_cube to flowspec should be a function */
