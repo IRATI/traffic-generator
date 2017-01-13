@@ -63,7 +63,7 @@ int client::negotiate_test(long long count, int duration,
                 return -1;
         }
 	LOG_INFO("starting test");
-	return 0; //ALL IS GOOD
+	return 0; //ALL IS WELL
 }
 
 /* needs common code extracted and function ptrs to
