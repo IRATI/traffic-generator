@@ -32,14 +32,13 @@ using namespace std;
 using namespace rina;
 
 /* this needs to be redesigned, we need test templates */
-int client::negotiate_test(long long count, int duration,
-                           int sdu_size, int fd)
+int client::negotiate_test(long long count, int duration, int sdu_size, int fd)
 {
 	//TODO: clean up this fix, padding of 32 bytes added to avoid runt frames
 	//when using the shim DIF over Ethernet directly
 	char init_data[sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32];
-        int sz = sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32;
-        int ret;
+	int sz = sizeof(count) + sizeof(duration) + sizeof(sdu_size) + 32;
+	int ret;
 
 	unsigned long long ncount = htobe64(count);
 	unsigned int ndur = htobe32(duration);
@@ -50,18 +49,18 @@ int client::negotiate_test(long long count, int duration,
 	memcpy(&init_data[sizeof(ncount) + sizeof(ndur)], &nsize, sizeof(nsize));
 
 	ret = write(fd, init_data, sz);
-        if (ret != sz) {
-                LOG_ERR("write() failed: %s", strerror(errno));
-                return -1;
-        }
+	if (ret != sz) {
+		LOG_ERR("write() failed: %s", strerror(errno));
+		return -1;
+	}
 
 	char response[128];
 	response[127] = '\0';
-        ret = read(fd, response, 127);
-        if (ret < 0) {
-                LOG_ERR("read() failed: %s", strerror(errno));
-                return -1;
-        }
+	ret = read(fd, response, 127);
+	if (ret < 0) {
+		LOG_ERR("read() failed: %s", strerror(errno));
+		return -1;
+	}
 	LOG_INFO("starting test");
 	return 0; //ALL IS WELL
 }
@@ -99,14 +98,14 @@ void client::single_cbr_test(unsigned int size,
 	clock_gettime(CLOCK_REALTIME, &start);
 	struct timespec next = start;
 	while (!stop) {
-                int ret;
+		int ret;
 
 		memcpy(to_send, &seq, sizeof(seq));
 		ret = write(fd, to_send, size);
-                if (ret != (int)size) {
-                        LOG_ERR("write() failed: %s", strerror(errno));
-                        break;
-                }
+		if (ret != (int)size) {
+			LOG_ERR("write() failed: %s", strerror(errno));
+			break;
+		}
 		long nanos = interval_time * MILLION;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		ts_add(&next,&interval,&next);
@@ -153,13 +152,13 @@ void client::single_cbrc_test(unsigned int size,
 	}
 	clock_gettime(CLOCK_REALTIME, &start);
 	while (!stop) {
-                int ret;
+		int ret;
 		memcpy(to_send, &seq, sizeof(seq));
 		ret = write(fd, to_send, size);
-                if (ret != (int)size) {
-                        LOG_ERR("write() failed: %s", strerror(errno));
-                        break;
-                }
+		if (ret != (int)size) {
+			LOG_ERR("write() failed: %s", strerror(errno));
+			break;
+		}
 		long nanos = seq*interval_time*MILLION;
 		int seconds = 0;
 		while (nanos > BILLION) {
@@ -220,13 +219,13 @@ void client::single_poisson_test(unsigned int size,
 	clock_gettime(CLOCK_REALTIME, &start);
 	struct timespec next = start;
 	while (!stop) {
-                int ret;
+		int ret;
 		memcpy(to_send, &seq, sizeof(seq));
 		ret = write(fd, to_send, size);
-                if (ret != (int)size) {
-                        LOG_ERR("write() failed: %s", strerror(errno));
-                        break;
-                }
+		if (ret != (int)size) {
+			LOG_ERR("write() failed: %s", strerror(errno));
+			break;
+		}
 		long nanos = rvt()*MILLION/poisson_mean*interval_time;
 		struct timespec interval = {nanos / BILLION, nanos % BILLION};
 		ts_add(&next,&interval,&next);
