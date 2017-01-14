@@ -50,7 +50,7 @@ private:
 /* internal functions */
 
 	/* respond to a new flow */
-	void handle_flow(int port_id);
+	void handle_flow(int port_id, int fd);
 };
 
 #endif
